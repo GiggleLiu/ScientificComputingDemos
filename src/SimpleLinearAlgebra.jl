@@ -11,7 +11,7 @@ export HouseholderMatrix, left_mul!, right_mul!, householder_e1, householder_qr!
 export qr_left_mul!, qr_right_mul!, givens_matrix, givens_qr!
 export classical_gram_schmidt, modified_gram_schmidt!
 export dft_matrix
-
+export fft!, fast_polymul
 
 # `include` other source files into this module
 include("back_substitution.jl")
@@ -22,6 +22,8 @@ include("householder.jl")
 include("qr_factorization.jl")
 include("orthogonalization.jl")
 include("fouriertransform.jl")
+include("fastfouriertransform.jl")
+include("")
 
 end # module
 
