@@ -8,5 +8,6 @@ using Test
     include("householder.jl")
     include("qr_factorization.jl")
     include("orthogonalization.jl")
+    include("fouriertransform.jl")
 end
 
