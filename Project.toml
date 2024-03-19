@@ -1,0 +1,13 @@
+name = "SimpleLinearAlgebra"
+uuid = "4b12b69c-63dd-4c1b-a448-fe77b38563e3"
+authors = ["YidaiZhang"]
+version = "1.0.0-DEV"
+
+[compat]
+julia = "1.10"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
