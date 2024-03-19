@@ -1,0 +1,6 @@
+[deps]
+Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+HappyMolecules = "800cb13d-1614-43bf-9060-6b9e570c014e"
+
+[compat]
+Documenter = "0.27"

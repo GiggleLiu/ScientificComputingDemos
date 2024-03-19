@@ -1,0 +1,6 @@
+/Manifest.toml
+.vscode/
+*.swp
+.CondaPkg/
+docs/Manifest.toml
+docs/build/

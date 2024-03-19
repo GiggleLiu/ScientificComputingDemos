@@ -17,3 +17,11 @@ Please make sure you have Julia installed on your local machine. If not, please 
    $ make example-PhysicsSimulation
    ```
    `make-test-%` is used to run the tests in the `PhysicsSimulation` directory. `make-example-%` is used to run the examples in the `PhysicsSimulation` directory. The `PhysicsSimulation` is the name of the directory where the demos are located. You can replace it with the name of the directory where the demos are located.
+
+## Contents
+1. [MyFirstPackage](MyFirstPackage/)
+2. [PhysicsSimulation](PhysicsSimulation/)
+3. [ImageProcessing](ImageProcessing/)
+4. [KernelPCA](KernelPCA/)
+5. [LatticeGasPCA](LatticeGasPCA/)
+6. [CompressedSensing](CompressedSensing/)
