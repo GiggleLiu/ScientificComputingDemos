@@ -15,3 +15,4 @@ test-%:
 example-%:
 	echo 'running example at: $*/examples/main.jl'
 	$(JL) -e 'using Pkg; dir=joinpath("$*", "examples"); @assert isdir(dir); Pkg.activate(dir); include(joinpath(dir, "main.jl"));'
+
