@@ -53,7 +53,7 @@ end
 
 @testset "enzyme potential field" begin
     potential, vector = LennardJones(), SVector(1.0, 2.0, 1.0)
-    ef = HappyMolecules.enzyme_potential_field(potential, vector)[1]
+    ef = HappyMolecules.enzyme_potential_field(potential, vector)
     field = force(potential, vector)
     @test field ≈ ef
 end

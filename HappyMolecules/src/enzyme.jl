@@ -19,5 +19,6 @@ using Enzyme
 # Like DuplicatedNoNeed, but expects a Tuple of shadow values.
 
 function enzyme_potential_field(potential::PotentialField, distance_vector::SVector)
-    Enzyme.autodiff(potential_energy, Const(potential), Active(distance_vector))
+    _, g = Enzyme.autodiff(Reverse, potential_energy, Active, Const(potential), Active(distance_vector))[1]
+    return g
 end
