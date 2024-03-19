@@ -4,7 +4,6 @@ authors = ["GiggleLiu"]
 version = "1.0.0-DEV"
 
 [deps]
-CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 
 [compat]
