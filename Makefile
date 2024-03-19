@@ -15,3 +15,6 @@ test-%:
 example-%:
 	echo 'running example at: $*/examples/main.jl'
 	$(JL) -e 'using Pkg; dir=joinpath("$*", "examples"); @assert isdir(dir); Pkg.activate(dir); include(joinpath(dir, "main.jl"));'
+
+testall: init-CompressedSensingTutorial test-CompressedSensingTutorial init-HappyMolecules test-HappyMolecules init-ImageProcessing test-ImageProcessing init-KernelPCA test-KernelPCA init-LatticeBolzmannModel test-LatticeBolzmannModel init-LatticeGasCA test-LatticeGasCA init-MyFirstPackage test-MyFirstPackage init-PhysicsSimulation test-PhysicsSimulation init-SimpleLinearAlgebra test-SimpleLinearAlgebra
+	echo 'all done'

@@ -5,8 +5,8 @@ using Images, FiniteDifferences, FFTW, Optim
 using Random
 
 @testset "waterfall gradient test" begin
-    Random.seed!(2)
-	C = 0.1
+    Random.seed!(6)
+	C = 0.0
     sample_probability = 0.1
     img = Float64.(Gray.(Images.load(joinpath(@__DIR__, "waterfall.jpeg"))))
     samples = sample_image_pixels(img, sample_probability)
@@ -42,7 +42,7 @@ end
     sample_probability = 0.1
     img = Float64.(Gray.(Images.load(joinpath(@__DIR__, "waterfall.jpeg"))))
     samples = sample_image_pixels(img, sample_probability)
-    res = sensing_image(samples; C, optimizer=:OWLQN, show_trace=true, linesearch=Optim.HagerZhang())
+    restored_img = sensing_image(samples; C, optimizer=:OWLQN, show_trace=true, linesearch=Optim.HagerZhang())
     @test norm(restored_img[samples.indices] - img[samples.indices]) <= 5
     @test norm(dct(restored_img), 1) <= 30000
 
