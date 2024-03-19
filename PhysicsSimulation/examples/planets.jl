@@ -3,6 +3,7 @@ using Makie, CairoMakie
 using PhysicsSimulation
 
 states = leapfrog_simulation(solar_system(); dt=0.01, nsteps=5500)
+@info("Set the number of steps, time and define the states.")
 
 # visualize the system
 getcoo(b::Body) = Point3f(b.r.data)
@@ -12,6 +13,7 @@ getarrows(b) = [Point3f(x.data) for x in b.a]
 endpoints = Observable(getarrows(states[1]))
 fig, ax, plot = scatter(coos, markersize = 10, color = :blue, limits = (-50, 50, -50, 50, -50, 50))
 arrows!(ax, coos, endpoints; color = :red)
+@info "Set some parameters to visualize the system."
 
 # movie
 fig = Figure()
@@ -21,6 +23,7 @@ record(fig, joinpath(@__DIR__, "planet.mp4"), 2:10:length(states); framerate = 2
     coos[] = getcoos(states[i])
     endpoints[] = getarrows(states[i])
 end
+@info "make a gif, and it is recorded in examples/planet.mp4."
 
 # orbitals
 fig = Figure()
@@ -31,3 +34,4 @@ for k=1:length(solar_system())
 end
 fig
 save(joinpath(@__DIR__, "planet_orbitals.png"), fig)
+@info "Plot the orbitals, they are saved in examples/planet_orbitals.png."
