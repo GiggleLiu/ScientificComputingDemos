@@ -1,0 +1,20 @@
+name = "GalaxyPCA"
+uuid = "0e3a2d8b-3b89-4ed6-a50a-4b0d2c130e0b"
+authors = ["GiggleLiu"]
+version = "1.0.0-DEV"
+
+[deps]
+FITSIO = "525bcba6-941b-5504-bd06-fd0dc1a4d2eb"
+PyCall = "438e738f-606a-5dbb-bf0a-cddfbfd45ab0"
+PyPlot = "d330b81b-6aea-500a-939a-2ce795aea3ee"
+VirtualObservatory = "d7ce213e-d3b9-4ed1-b00e-1146b7ac83e0"
+WCS = "15f3aee2-9e10-537f-b834-a6fb8bdb944d"
+
+[compat]
+julia = "1"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
