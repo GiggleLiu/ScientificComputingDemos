@@ -1,5 +1,4 @@
 using ImageProcessing, ImageProcessing.Images, ImageProcessing.LinearAlgebra
-using Makie, CairoMakie
 
 img = demo_image("amat.png")
 
@@ -23,21 +22,6 @@ Gray.(red_channel)
 Gray.(channelview(img)[1, :, :])
 Gray.(channelview(img)[2, :, :])
 Gray.(channelview(img)[3, :, :])
-
-red_svd = svd(red_channel)
-Makie.lines(red_svd.S)
-
-# We can decompose a given image into the three color channels red, green and blue.
-# Each channel can be represented as a (m × n)‑matrix with values ranging from 0 to 255.
-target_rank = 10
-compressed = svd_compress(img, target_rank)
-compression_ratio(compressed)
-
-# convert to image
-toimage(RGBA{N0f8}, compressed)
-compressed_rank1 = lower_rank(compressed, 1)
-compression_ratio(compressed_rank1)
-toimage(RGBA{N0f8}, compressed_rank1)
 
 ##### FFT #####
 # convert image to momentum space

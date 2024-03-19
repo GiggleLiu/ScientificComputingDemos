@@ -7,6 +7,7 @@ evals, evecs = eigen(C_matrix)
 second_omega = sqrt(-evals[2]/M)
 second_mode = evecs[:, 2]
 
+L = size(C_matrix, 1)
 phi0 = zeros(L)
 u(t) = (0:L-1) .+ second_mode .* cos.(-second_omega .* t)
 
