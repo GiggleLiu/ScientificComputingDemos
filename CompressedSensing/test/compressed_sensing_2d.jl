@@ -1,5 +1,5 @@
-using CompressedSensingTutorial
-using CompressedSensingTutorial: objective_dct, gradient_dct!, gradient_dct
+using CompressedSensing
+using CompressedSensing: objective_dct, gradient_dct!, gradient_dct
 using Test
 using Images, FiniteDifferences, FFTW, Optim
 using Random, LinearAlgebra
@@ -8,7 +8,7 @@ using Random, LinearAlgebra
     Random.seed!(6)
 	C = 0.0
     sample_probability = 1.0
-    #img = Float64.(Gray.(Images.load(pkgdir(CompressedSensingTutorial, "data", "waterfall.jpeg"))))
+    #img = Float64.(Gray.(Images.load(pkgdir(CompressedSensing, "data", "waterfall.jpeg"))))
     img = randn(4, 4)
     samples = sample_image_pixels(img, sample_probability)
 
@@ -25,7 +25,7 @@ end
     # compressed sensing optimization
     C = 0.01
     sample_probability = 0.1
-    img = Float64.(Gray.(Images.load(pkgdir(CompressedSensingTutorial, "data", "waterfall.jpeg"))))
+    img = Float64.(Gray.(Images.load(pkgdir(CompressedSensing, "data", "waterfall.jpeg"))))
     samples = sample_image_pixels(img, sample_probability)
     restored_img = sensing_image(samples; C, optimizer=:OWLQN, show_trace=true)
 
@@ -39,7 +39,7 @@ end
     Random.seed!(2)
     C = 0.002
     sample_probability = 0.1
-    img = Float64.(Gray.(Images.load(pkgdir(CompressedSensingTutorial, "data", "waterfall.jpeg"))))
+    img = Float64.(Gray.(Images.load(pkgdir(CompressedSensing, "data", "waterfall.jpeg"))))
     samples = sample_image_pixels(img, sample_probability)
     restored_img = sensing_image(samples; C, optimizer=:OWLQN, show_trace=true, linesearch=Optim.HagerZhang())
     @test norm(restored_img[samples.indices] - img[samples.indices]) <= 5

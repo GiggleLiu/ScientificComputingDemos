@@ -1,4 +1,4 @@
-using Test, CompressedSensingTutorial.L1Convex
+using Test, CompressedSensing.L1Convex
 using Random
 
 @testset "original" begin

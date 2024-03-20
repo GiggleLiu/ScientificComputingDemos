@@ -1,6 +1,6 @@
-name = "CompressedSensingTutorial"
-uuid = "3ab334c4-b558-47f6-9400-74651b19301f"
-authors = ["GiggleLiu <cacate0129@gmail.com> and contributors"]
+name = "CompressedSensing"
+uuid = "eab4ea05-e27a-4e05-9e06-444d2403730e"
+authors = ["GiggleLiu"]
 version = "1.0.0-DEV"
 
 [deps]
