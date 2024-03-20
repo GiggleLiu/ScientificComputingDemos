@@ -30,3 +30,4 @@ website/notebooks/*.html
 lorenz.mp4
 Manifest.toml
 .vscode/
+/*.png
