@@ -29,7 +29,7 @@ using Random
     λ = 0.2
     M = OWLQN(typeof(beta); λ);
 
-    for i in 1:100    
+    for i in 1:17    
         beta = step!(M, f, ∇f, beta);
         
         mse = f(beta);

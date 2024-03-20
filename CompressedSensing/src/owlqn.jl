@@ -128,7 +128,7 @@ end
 function (ls::SimpleLinesearch)(df::NLSolversBase.AbstractObjective, x::AbstractArray{T},
                           s::AbstractArray{T}, α::Real,
                           x_new::AbstractArray{T}, phi_0::Real, dphi_0::Real) where T
-    @assert dphi_0 < 0 "the direction can not reduce the loss!"
+    @assert dphi_0 < 0 "the direction can not reduce the loss! got dphi_0 = $dphi_0"
     β, γ, iterations = ls.β, ls.γ, ls.iterations
     # choose orthant for the new point
     orthant(xi, pgi) = iszero(xi) ? sign(pgi) : sign(xi)
