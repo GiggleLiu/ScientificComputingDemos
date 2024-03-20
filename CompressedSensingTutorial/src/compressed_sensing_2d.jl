@@ -30,7 +30,7 @@ end
 function objective_dct(x, samples::ImageSamples; C=0.0)
     # constraint A*x = sample_values, minimize norm(x, 1)
     Ax_b = FFTW.idct(x)[samples.indices] .- samples.values
-    loss = norm(Ax_b, 2)
+    loss = norm(Ax_b, 2)^2
     if !iszero(C)
         loss += C .* norm(x, 1)
     end

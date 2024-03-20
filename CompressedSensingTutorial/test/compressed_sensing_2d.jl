@@ -9,7 +9,7 @@ using Random, LinearAlgebra
 	C = 0.0
     sample_probability = 1.0
     #img = Float64.(Gray.(Images.load(pkgdir(CompressedSensingTutorial, "data", "waterfall.jpeg"))))
-    img = Matrix{Float64}(I, 4, 4)
+    img = randn(4, 4)
     samples = sample_image_pixels(img, sample_probability)
 
 	x0 = rand(size(img)...)
@@ -18,7 +18,6 @@ using Random, LinearAlgebra
     # the gradient obtained with the manual gradient
 	gobj = gradient_dct(x0, samples; C)
     @test isapprox(gs, gobj; rtol=1e-2)
-    @show gobj ./ gs
 end
 
 @testset "optimization LBFGS" begin

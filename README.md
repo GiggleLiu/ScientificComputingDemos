@@ -21,6 +21,7 @@ Please make sure you have Julia installed on your local machine. If not, please 
 ## Contents
 1. [MyFirstPackage](MyFirstPackage/)
 2. [PhysicsSimulation](PhysicsSimulation/)
+3. [SimpleLinearAlgebra](SimpleLinearAlgebra/)
 3. [ImageProcessing](ImageProcessing/)
 4. [KernelPCA](KernelPCA/)
 5. [LatticeGasPCA](LatticeGasPCA/)
