@@ -1,3 +1,8 @@
+#=
+The Gram-Schmidt orthogonalization is a method to compute the QR factorization of a matrix A by construct an orthogonal matrix 
+Q and an upper triangular matrix R.
+$q_k=\left(a_k-\sum_{i=1}^{k-1}r_{ik}q_i\right)/r_{kk}$
+=#
 function classical_gram_schmidt(A::AbstractMatrix{T}) where T
     m, n = size(A)
     Q = zeros(T, m, n)
@@ -18,6 +23,7 @@ function classical_gram_schmidt(A::AbstractMatrix{T}) where T
     return Q, R
 end
 
+# Modified Gram-Schmidt orthogonalization
 function modified_gram_schmidt!(A::AbstractMatrix{T}) where T
     m, n = size(A)
     Q = zeros(T, m, n)

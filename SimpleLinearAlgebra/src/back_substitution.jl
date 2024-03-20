@@ -1,3 +1,9 @@
+#=
+Back substitution is an algorithm used to solve a system of linear equations with an upper triangular matrix Ux = b. 
+U is an upper triangular matrix.
+The back substitution can be summarized to the following algorithm
+$x_n=b_n/u_{nn},\quad x_i=\left(b_i-\sum_{j=i+1}^nu_{ij}x_j\right)/u_{ii},\quad i=n-1,...,1$
+=#
 function back_substitution!(l::AbstractMatrix, b::AbstractVector)
     n = length(b)
     @assert size(l) == (n, n) "size mismatch"

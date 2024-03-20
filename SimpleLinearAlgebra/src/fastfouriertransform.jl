@@ -1,3 +1,9 @@
+#= 
+We have a recursive algorithm to compute the DFT.
+$F_nx=\begin{pmatrix}I_{n/2}&D_{n/2}\\I_{n/2}&-D_{n/2}\end{pmatrix}\begin{pmatrix}F_{n/2}&0\\0&F_{n/2}\end{pmatrix}\begin{pmatrix}x_{\mathrm{odd}}\\x_{\mathrm{even}}\end{pmatrix}$
+where $D_n=\operatorname{diag}(1,\omega,\omega^2,\ldots,\omega^{n-1})$
+We implement the O(nlogn) Cooley-Tukey algorithm to compute the DFT.
+=#
 function fft!(x::AbstractVector{T}) where T
     N = length(x)
     @inbounds if N <= 1

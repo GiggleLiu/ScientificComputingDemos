@@ -1,3 +1,10 @@
+#=
+LU factoriazation (or Gaussian elimination) with row pivoting is defined as PA = LU, where P is a permutation matrix.
+L is a lower triangular matrix, and U is an upper triangular matrix.
+Pivoting in Gaussian elimination is the process of selecting a pivot element in a matrix and then using it to eliminate other elements in the same column or row. 
+The pivot element is chosen as the largest absolute value in the column, and its row is swapped with the row containing the current element being eliminated if necessary. 
+This is done to avoid division by zero or numerical instability, and to ensure that the elimination process proceeds smoothly. 
+=#
 function lufact_pivot!(a::AbstractMatrix)
     n = size(a, 1)
     @assert size(a, 2) == n "size mismatch"

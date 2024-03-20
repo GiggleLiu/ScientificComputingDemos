@@ -1,3 +1,8 @@
+#=
+QR Factorization by Givens Rotations. 
+It defines a Givens rotation matrix and implements QR factorization of a matrix using these rotations,
+with functions to perform in-place multiplication and construct the necessary Givens matrices.
+=#
 struct GivensMatrix{T} <: AbstractArray{T, 2}
     c::T
     s::T
