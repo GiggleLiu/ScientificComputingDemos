@@ -1,3 +1,4 @@
+# Let v be nonzero, an m-by-m matrix P of the form I - 2v*v'/v'*v is called a Householder matrix, which is both symmetric and orthogonal. 
 struct HouseholderMatrix{T} <: AbstractArray{T, 2}
     v::Vector{T}
     β::T
@@ -37,6 +38,12 @@ function householder_e1(v::AbstractVector{T}) where T
     return HouseholderMatrix(v, 2/norm(v, 2)^2)
 end
 
+
+#= Let H_k be the Householder matrix that zeros out the k-th column below the diagonal. Then we have
+$H_n\ldots H_2H_1A=R$
+where R is an upper triangular matrix. Then we can define the Q matrix as
+$Q=H_1^TH_2^T\ldots H_n^T$, which is a unitary matrix.
+=#
 function householder_qr!(Q::AbstractMatrix{T}, a::AbstractMatrix{T}) where T
     m, n = size(a)
     @assert size(Q, 2) == m
