@@ -1,6 +1,6 @@
-name = "CompressedSensingTutorial"
-uuid = "3ab334c4-b558-47f6-9400-74651b19301f"
-authors = ["GiggleLiu <cacate0129@gmail.com> and contributors"]
+name = "CompressedSensing"
+uuid = "eab4ea05-e27a-4e05-9e06-444d2403730e"
+authors = ["GiggleLiu"]
 version = "1.0.0-DEV"
 
 [deps]
@@ -14,6 +14,14 @@ Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 
 [compat]
+FFTW = "1"
+FiniteDifferences = "0.12"
+Images = "0.26"
+NLSolversBase = "7"
+Optim = "1"
+StatsBase = "0.34"
+LinearAlgebra = "1"
+Random = "1"
 julia = "1"
 
 [extras]

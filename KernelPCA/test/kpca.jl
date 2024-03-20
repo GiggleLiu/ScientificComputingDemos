@@ -1,6 +1,5 @@
 using KernelPCA, Test
 using LinearAlgebra, Random
-using Plots
 
 @testset "kpca" begin
     Random.seed!(4)
@@ -15,7 +14,6 @@ using Plots
         @test res.lambda[k] * norm(res.vectors[:, k])^2 ≈ 1
     end
     @show res.lambda
-    display(showres(res))
 end
 
 @testset "kpca" begin
@@ -37,7 +35,6 @@ end
     for k in 1:length(res.lambda)
         @test res.lambda[1] * V1 ≈ C * V1
     end
-    showres(res)
 end
 
 @testset "centered kpca" begin
@@ -56,17 +53,4 @@ end
     for k in 1:length(res.lambda)
         @test res.lambda[1] * V1 ≈ C * V1
     end
-    display(showres(res))
-end
-
-function showres(res)
-    dataset = res.anchors
-    x, y = getindex.(dataset, 1), getindex.(dataset, 2)
-    @show res.lambda
-    kf = kernelf(res, 1)
-    X, Y = minimum(x):0.01:maximum(x), minimum(y):0.01:maximum(y)
-    @show X, Y
-    #levels = -0.1:0.01:0.1
-    plt = Plots.contour(X, Y, kf.(KernelPCA.Point.(X', Y)); label="")
-    Plots.scatter!(plt, x, y; label="data")
 end

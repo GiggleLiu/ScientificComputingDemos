@@ -9,7 +9,7 @@ Requires = "ae029012-a4dd-5104-9daa-d747884805df"
 UnicodePlots = "b8865327-cd53-5732-bb35-84acbb429228"
 
 [compat]
-CUDA = "4.2"
+CUDA = "5"
 UnicodePlots = "3.5"
 julia = "1"
 

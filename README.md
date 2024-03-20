@@ -1,5 +1,7 @@
 (Work in progress) Demos projects in the book: [Scientific Computing for Physicists](https://book.jinguo-group.science/)
 
+[![CI](https://github.com/GiggleLiu/ScientificComputingDemos/actions/workflows/CI.yml/badge.svg)](https://github.com/GiggleLiu/ScientificComputingDemos/actions/workflows/CI.yml)
+
 ## Get started
 Please make sure you have Julia installed on your local machine. If not, please download and install it with [juliaup](https://github.com/JuliaLang/juliaup).
 
@@ -19,9 +21,10 @@ Please make sure you have Julia installed on your local machine. If not, please 
    `make-test-%` is used to run the tests in the `PhysicsSimulation` directory. `make-example-%` is used to run the examples in the `PhysicsSimulation` directory. The `PhysicsSimulation` is the name of the directory where the demos are located. You can replace it with the name of the directory where the demos are located.
 
 ## Contents
-1. [MyFirstPackage](MyFirstPackage/)
-2. [PhysicsSimulation](PhysicsSimulation/)
-3. [ImageProcessing](ImageProcessing/)
-4. [KernelPCA](KernelPCA/)
-5. [LatticeGasPCA](LatticeGasPCA/)
-6. [CompressedSensing](CompressedSensing/)
+1. [MyFirstPackage](MyFirstPackage/) - Lorenz attractor
+2. [PhysicsSimulation](PhysicsSimulation/) - Simulate a spring system, leapfrog method, and eigenvalue problem
+3. [SimpleLinearAlgebra](SimpleLinearAlgebra/) - Implement LU decomposition, QR decomposition and FFT et al.
+4. [ImageProcessing](ImageProcessing/) - Image compression with FFT and SVD
+5. [CompressedSensing](CompressedSensing/) - Compressed sensing for image compression
+6. [KernelPCA](KernelPCA/) - Kernel method and Kernel PCA
+7. [LatticeGasCA](LatticeGasCA/) - Lattice gas cellular automata

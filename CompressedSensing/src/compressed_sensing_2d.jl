@@ -29,8 +29,8 @@ end
 
 function objective_dct(x, samples::ImageSamples; C=0.0)
     # constraint A*x = sample_values, minimize norm(x, 1)
-    Ax_b = idct(x)[samples.indices] .- samples.values
-    loss = norm(Ax_b, 2)
+    Ax_b = FFTW.idct(x)[samples.indices] .- samples.values
+    loss = norm(Ax_b, 2)^2
     if !iszero(C)
         loss += C .* norm(x, 1)
     end
@@ -39,22 +39,22 @@ end
 
 function gradient_dct!(g, x, samples::ImageSamples; C=0.0)
     # gradient is 2 * (A' * A x - A' * sample_values) + sign(x)
-    Ax_b = idct(x)[samples.indices] .- samples.values
-    padded = zero_padded(samples, Ax_b)
+    Ax_b = FFTW.idct(x)[samples.indices] .- samples.values
+    padded = zero_padded(samples.size, samples.indices, Ax_b)
     if !iszero(C)
-        g .= 2 .* dct(padded) .+ C .* sign.(x)
+        g .= 2 .* FFTW.dct!(padded) .+ C .* sign.(x)
     else
-        g .= 2 .* dct(padded)
+        g .= 2 .* FFTW.dct!(padded)
     end
     return g
 end
 gradient_dct(x, samples::ImageSamples; C=0.0) = gradient_dct!(zero(x), x, samples; C)
 
 # zero pad the sample to target size
-function zero_padded(samples::ImageSamples{T}, values::AbstractVector{T}=samples.values) where T
-    x = similar(values, samples.size...)
+function zero_padded(size, indices, values::AbstractVector{T}) where T
+    x = similar(values, size...)
     fill!(x, zero(T))
-    x[samples.indices] .= values
+    x[indices] .= values
     return x
 end
 
