@@ -1,3 +1,4 @@
+# A naive implementation of elimentary elimination matrix is as follows
 function lufact_naive!(A::AbstractMatrix{T}) where T
     n = size(A, 1)
     @assert size(A, 2) == n
@@ -9,6 +10,12 @@ function lufact_naive!(A::AbstractMatrix{T}) where T
     end
     return M, A
 end
+
+
+#= 
+The above implementation has time complexity O(n^4) and since we did not use the sparsity of elimentary elimination matrix. 
+A better implementation that gives O(n^3) time complexity is as follows
+=#
 
 function lufact!(a::AbstractMatrix)
     n = size(a, 1)
