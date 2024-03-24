@@ -1,10 +1,15 @@
 using SimpleTensorNetwork
 using SimpleTensorNetwork.Graphs, SimpleTensorNetwork.OMEinsum
+using LuxorGraphPlot
 
 graphname = :petersen
 graph = smallgraph(graphname)
+filename = "graph-$graphname.png"
+LuxorGraphPlot.show_graph(graph; filename; texts=string.(1:nv(graph)))
+@info "loaded graph: $graphname, saved to `$filename`"
+
 sg = Spinglass(graph, ones(15), zeros(10))
-@info """initialized spin-glass on $graphname graph:
+@info """initialized spin-glass on graph:
 - edges: $(collect(edges(sg.graph)))
 - J: $(sg.J)
 - h: $(sg.h)
