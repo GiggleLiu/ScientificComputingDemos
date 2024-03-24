@@ -1,6 +1,6 @@
 using SimpleTensorNetwork
 using Test
 
-@testset "SimpleTensorNetwork.jl" begin
-    # Write your tests here.
+@testset "spinglass" begin
+    include("spinglass.jl")
 end
