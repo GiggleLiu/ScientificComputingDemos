@@ -22,15 +22,15 @@ Z = \sum_{\boldsymbol{\sigma}} \exp(-\beta H(\boldsymbol{\sigma}))
 ```
 where the sum is over all possible spin configurations.
 
-## Example 2
+## Example 2: Bayesian network
 
-| **Random variable**  | **Meaning**                     |
-|        :---:         | :---                            |
-|        A         | Recent trip to Asia             |
-|        T         | Patient has tuberculosis        |
-|        S         | Patient is a smoker             |
-|        L         | Patient has lung cancer         |
-|        B         | Patient has bronchitis          |
-|        E         | Patient hast T and/or L |
-|        X         | Chest X-Ray is positive         |
-|        D         | Patient has dyspnoea            |
+This example is from the [TensorInference.jl](https://github.com/TensorBFS/TensorInference.jl) package. The graph below corresponds to the *ASIA network*, a simple Bayesian model used extensively in educational settings. It was introduced by Lauritzen in 1988 [^lauritzen1988local].
+
+![](assets/asia.png)
+
+Conditional probability tables (CPTs) are given by
+```julia
+```
+
+## References
+[^lauritzen1988local]: Steffen L Lauritzen and David J Spiegelhalter. Local computations with probabilities on graphical structures and their application to expert systems. *Journal of the Royal Statistical Society: Series B (Methodological)*, 50(2):157–194, 1988.

@@ -6,10 +6,10 @@ struct Spinglass{T}
     h::Vector{T}
 end
 
-struct TensorNetwork{T}
+struct TensorNetwork{T, LT}
     tensors::AbstractArray{T}
-    ixs::Vector{Vector{Int}}
-    iy::Vector{Int}
+    ixs::Vector{Vector{LT}}
+    iy::Vector{LT}
 end
 
 struct OptimizedTensorNetwork{T, ET<:AbstractEinsum}
