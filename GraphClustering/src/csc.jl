@@ -15,19 +15,33 @@ Base.size(A::CSCMatrix, i::Int) = getindex((A.m, A.n), i)
 # the number of non-zero elements
 nnz(csc::CSCMatrix) = length(csc.nzval)
 
-function CSCMatrix(coo::COOMatrix)
+function CSCMatrix(coo::COOMatrix{Tv, Ti}) where {Tv, Ti}
     m, n = size(coo)
     # sort the COO matrix by column
     order = sortperm(1:nnz(coo); by=i->coo.rowval[i] + m * (coo.colval[i]-1))
-    colval, rowval, nzval = coo.colval[order], coo.rowval[order], coo.nzval[order]
-    colptr = ones(Int, n+1)
-    ptr = 1
-    for j in 1:n
-        while ptr <= length(colval) && colval[ptr] == j
-            ptr += 1
+    colptr, rowval, nzval = similar(coo.rowval, n+1), similar(coo.rowval), similar(coo.nzval)
+    k = 0
+    ipre, jpre = 0, 0
+    colptr[1] = 1
+    for idx in order
+        i, j, v = coo.rowval[idx], coo.colval[idx], coo.nzval[idx]
+        # values with the same indices are accumulated
+        if i == ipre && j == jpre
+            nzval[k] += v
+        else
+            k += 1
+            if j != jpre
+                # a new column starts
+                colptr[jpre+1:j+1] .= k
+            end
+            rowval[k] = i
+            nzval[k] = v
+            ipre, jpre = i, j
         end
-        colptr[j+1] = ptr
     end
+    colptr[jpre+1:end] .= k + 1
+    resize!(rowval, k)
+    resize!(nzval, k)
     return CSCMatrix(m, n, colptr, rowval, nzval)
 end
 
