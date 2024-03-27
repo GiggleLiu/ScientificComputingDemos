@@ -1,0 +1,19 @@
+name = "SimpleTensorNetwork"
+uuid = "78e1b9ab-115c-454e-b043-970603f427b2"
+authors = ["GiggleLiu"]
+version = "1.0.0-DEV"
+
+[deps]
+Graphs = "86223c79-3864-5bf0-83f7-82e725a168b6"
+OMEinsum = "ebe7aa44-baf0-506c-a96f-8464559b3922"
+
+[compat]
+OMEinsum = "0.7, 0.8"
+Graphs = "1"
+julia = "1"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]

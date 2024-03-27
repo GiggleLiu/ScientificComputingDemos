@@ -1,0 +1,4 @@
+[deps]
+GenericTensorNetworks = "3521c873-ad32-4bb4-b63d-f4f178f42b49"
+LuxorGraphPlot = "1f49bdf2-22a7-4bc4-978b-948dc219fbbc"
+SimpleTensorNetwork = "78e1b9ab-115c-454e-b043-970603f427b2"
