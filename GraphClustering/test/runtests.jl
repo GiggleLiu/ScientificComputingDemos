@@ -8,3 +8,7 @@ end
 @testset "csc" begin
     include("csc.jl")
 end
+
+@testset "visualization" begin
+    include("visualization.jl")
+end

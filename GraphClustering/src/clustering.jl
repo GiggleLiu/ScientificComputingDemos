@@ -1,5 +1,3 @@
-using Graphs, KrylovKit, LuxorGraphPlot, LinearAlgebra
-
 function connected_components(g::SimpleGraph, kmax::Int; atol=1e-8)
     # Returns the connected components of the graph.
     lap = laplacian_matrix(g)
