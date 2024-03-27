@@ -28,3 +28,5 @@ Please make sure you have Julia installed on your local machine. If not, please 
 5. [CompressedSensing](CompressedSensing/) - Compressed sensing for image compression
 6. [KernelPCA](KernelPCA/) - Kernel method and Kernel PCA
 7. [LatticeGasCA](LatticeGasCA/) - Lattice gas cellular automata
+8. [SimpleTensorNetwork](SimpleTensorNetwork/) - Tensor networks for solving spin glass and inference problems
+9. [GraphClustering](GraphClustering/) - Spectral clustering algorithm
