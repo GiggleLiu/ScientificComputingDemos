@@ -1,6 +1,6 @@
 using SimpleTensorNetwork
 
-function asia_network()
+function asia_network(; open_vertices=Char[])
     # 0 -> NO
     # 1 -> YES
     factors = [
@@ -26,13 +26,15 @@ function asia_network()
                                     0.3 0.7];
                         x[2,:,:] .= [0.2 0.8;
                                     0.05 0.95]; x)]
-    return TensorNetwork(getfield.(factors, :second), collect.(first.(factors)), Char[])
+    return TensorNetwork(getfield.(factors, :second), collect.(first.(factors)), open_vertices)
 end
 
 network = asia_network()
 optnet = optimize_tensornetwork(network)
-
 total_prob = optnet.ein(network.tensors...)[]
+
+network = asia_network()
+
 
 # Import the TensorInference package, which provides the functionality needed
 # for working with tensor networks and probabilistic graphical models.
