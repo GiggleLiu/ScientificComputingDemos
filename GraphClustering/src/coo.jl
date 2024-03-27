@@ -12,6 +12,7 @@ end
 
 Base.size(coo::COOMatrix) = (coo.m, coo.n)
 Base.size(coo::COOMatrix, i::Int) = getindex((coo.m, coo.n), i)
+# the number of non-zero elements
 nnz(coo::COOMatrix) = length(coo.nzval)
 
 function Base.getindex(coo::COOMatrix{Tv}, i::Integer, j::Integer) where Tv

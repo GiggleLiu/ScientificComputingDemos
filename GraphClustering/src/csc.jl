@@ -12,6 +12,7 @@ struct CSCMatrix{Tv,Ti} <: AbstractMatrix{Tv}
 end
 Base.size(A::CSCMatrix) = (A.m, A.n)
 Base.size(A::CSCMatrix, i::Int) = getindex((A.m, A.n), i)
+# the number of non-zero elements
 nnz(csc::CSCMatrix) = length(csc.nzval)
 
 function CSCMatrix(coo::COOMatrix)
@@ -56,4 +57,6 @@ function Base.:*(A::CSCMatrix{T1}, B::CSCMatrix{T2}) where {T1, T2}
     end
     return CSCMatrix(COOMatrix(size(A, 1), size(B, 2), colval, rowval, nzval))
 end
+
+# return the range of non-zero elements in the j-th column
 nzrange(A::CSCMatrix, j::Int) = A.colptr[j]:A.colptr[j+1]-1

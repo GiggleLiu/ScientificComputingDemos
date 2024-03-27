@@ -1,3 +1,14 @@
+"""
+    GraphViz{GT<:AbstractGraph}
+    GraphViz(graph)
+
+Create a `GraphViz` object from a graph for visualization.
+
+### Interfaces
+- `setcolor!`: set the color of vertices or edges
+- `setlabel!`: set the label of vertices
+- `setsize!`: set the size of vertices
+"""
 struct GraphViz{GT<:AbstractGraph}
     graph::GT
     locs::Vector{Tuple{Float64, Float64}}
@@ -41,6 +52,17 @@ function edge_indices(g::SimpleGraph, edgs::AbstractVector{Tuple{Int, Int}})
     return [dict[Edge(e...)] for e in edgs]
 end
 
+"""
+    drawing(gv::GraphViz; filename=nothing)
+
+Draw the graph with the given style.
+
+### Arguments
+- `gv::GraphViz`: the graph to draw
+
+### Keyword Arguments
+- `filename::String=nothing`: the filename to save the drawing
+"""
 drawing(gv::GraphViz; filename=nothing) = LuxorGraphPlot.show_graph(gv.graph; locs=gv.locs, edge_colors=gv.edge_colors, vertex_colors=gv.vertex_colors, texts=gv.vertex_labels, vertex_sizes=gv.vertex_sizes, filename)
 function Base.show(io::IO, ::MIME"text/html", gv::GraphViz)
     show(io, "text/html", drawing(gv))
