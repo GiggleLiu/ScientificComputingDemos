@@ -34,8 +34,11 @@ end
 function spectral_clustering(points::AbstractVector{Vector{T}}, k; sigma) where T
     expdist(x, y) = exp(-(norm(x-y)/sigma)^2)
     adj = expdist.(reshape(points, 1, :), points)
-    D = Diagonal(inv.(sqrt.(sum(adj, dims=1))))
+    D = Diagonal(inv.(sqrt.(dropdims(sum(adj; dims=1); dims=1))))
     normalized_adj = D * adj * D
-    vals, vecs = eigsolve(normalized_adj, randn(length(points)), k, :SR; ishermitian=true)
-    lap = Diagonal
+    vals, _vecs = eigsolve(normalized_adj, randn(length(points)), k, :SR; ishermitian=true)
+    vecs = hcat(_vecs[1:k]...)
+    # normalize along the row
+    vecs ./= sqrt.(sum(abs2, vecs; dims=2))
+    return kmeans(vecs', k)
 end

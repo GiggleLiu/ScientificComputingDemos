@@ -1,5 +1,6 @@
 struct GraphViz{GT<:AbstractGraph}
     graph::GT
+    locs::Vector{Tuple{Float64, Float64}}
 
     vertex_labels::Vector{String}
     vertex_colors::Vector{String}
@@ -8,7 +9,7 @@ struct GraphViz{GT<:AbstractGraph}
     edge_colors::Vector{String}
 end
 function GraphViz(g::AbstractGraph)
-    GraphViz(g,
+    GraphViz(g, [(x, y) for (x, y) in zip(LuxorGraphPlot.spring_layout(g)...)],
 
         fill("", nv(g)),
         fill("black", nv(g)),
@@ -40,7 +41,7 @@ function edge_indices(g::SimpleGraph, edgs::AbstractVector{Tuple{Int, Int}})
     return [dict[Edge(e...)] for e in edgs]
 end
 
-drawing(gv::GraphViz) = LuxorGraphPlot.show_graph(gv.graph; edge_colors=gv.edge_colors, vertex_colors=gv.vertex_colors, texts=gv.vertex_labels, vertex_sizes=gv.vertex_sizes)
+drawing(gv::GraphViz; filename=nothing) = LuxorGraphPlot.show_graph(gv.graph; locs=gv.locs, edge_colors=gv.edge_colors, vertex_colors=gv.vertex_colors, texts=gv.vertex_labels, vertex_sizes=gv.vertex_sizes, filename)
 function Base.show(io::IO, ::MIME"text/html", gv::GraphViz)
     show(io, "text/html", drawing(gv))
 end
