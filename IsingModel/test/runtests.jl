@@ -1,6 +1,6 @@
 using IsingModel
 using Test
 
-@testset "IsingModel.jl" begin
-    # Write your tests here.
+@testset "ising2d" begin
+    include("ising2d.jl")
 end

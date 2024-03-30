@@ -3,6 +3,9 @@ uuid = "d6d5e6cc-7d26-42f1-a815-3fdb1c237969"
 authors = ["GiggleLiu"]
 version = "1.0.0-DEV"
 
+[deps]
+DelimitedFiles = "8bb1440f-4735-579b-a4ab-409b98df4dab"
+
 [compat]
 julia = "1"
 

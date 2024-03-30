@@ -1,0 +1,4 @@
+[deps]
+CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
+IsingModels = "723ee7ca-8220-4cb6-9f2e-031e2886e2e7"
+LaTeXStrings = "b964fa9f-0449-5b57-a5c2-d3ea65f4040f"
