@@ -1,14 +1,14 @@
-struct IsingModel{RT}
+struct SpinModel{RT}
     l::Int
     h::RT
     beta::RT
     pflp::NTuple{10, RT}
     neigh::Matrix{Int}
 end
-function IsingModel(l::Int, h::RT, beta::RT) where RT
+function SpinModel(l::Int, h::RT, beta::RT) where RT
     pflp = ([exp(-2*s*(i + h) * beta) for s=-1:2:1, i in -4:2:4]...,)
     neigh = lattice(l)
-    IsingModel(l, h, beta, pflp, neigh)
+    SpinModel(l, h, beta, pflp, neigh)
 end
 # Constructs a list neigh[1:4,1:nn] of neighbors of each site
 function lattice(ll)
@@ -17,11 +17,11 @@ function lattice(ll)
 end
 
 # Performs one MC sweep. This version computes the neighbors on the fly.
-function pflip(model::IsingModel, s::Integer, field::Integer)
+function pflip(model::SpinModel, s::Integer, field::Integer)
     return @inbounds model.pflp[(field + 5) + (1 + s) >> 1]
 end
 
-function mcstep!(model::IsingModel, spin)
+function mcstep!(model::SpinModel, spin)
     nn = model.l * model.l
     @inbounds for _ = 1:nn
         s = rand(1:nn)
@@ -45,26 +45,27 @@ struct SimulationResult{RT}
 end
 SimulationResult(nbins, nsteps_eachbin) = SimulationResult(nbins, nsteps_eachbin, Ref(0), zeros(nbins), zeros(nbins), zeros(nbins), zeros(nbins), zeros(nbins))
 
-function energy(model::IsingModel, spin)
+function energy(model::SpinModel, spin)
     sum(1:model.l^2) do i
         s = spin[i]
         - s * (spin[model.neigh[1, i]] + spin[model.neigh[2, i]] + model.h)
     end
 end
 
-function measure!(result::SimulationResult, model::IsingModel, spin)
+function measure!(result::SimulationResult, model::SpinModel, spin)
+    @boundscheck checkbounds(result.energy, result.current_bin[])
     m = sum(spin)
     e = energy(model, spin)
     n = model.l^2
     k = result.current_bin[]
-    result.energy[k] += e/n
-    result.energy2[k] += (e/n)^2
-    result.m[k] += abs(m/n)
-    result.m2[k] += (m/n)^2
-    result.m4[k] += (m/n)^4
+    @inbounds result.energy[k] += e/n
+    @inbounds result.energy2[k] += (e/n)^2
+    @inbounds result.m[k] += abs(m/n)
+    @inbounds result.m2[k] += (m/n)^2
+    @inbounds result.m4[k] += (m/n)^4
 end
 
-function simulate!(model::IsingModel, spin; nsteps_heatbath, nsteps_eachbin, nbins)
+function simulate!(model::SpinModel, spin; nsteps_heatbath, nsteps_eachbin, nbins)
     # heat bath
     for _ = 1:nsteps_heatbath
         mcstep!(model, spin)    
