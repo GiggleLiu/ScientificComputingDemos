@@ -2,7 +2,7 @@ using Test, IsingModel, DelimitedFiles
 using IsingModel: pflip
 
 @testset "pflip" begin
-    model = SpinModel(10, 0.1, 0.5)
+    model = IsingSpinModel(10, 0.1, 0.5)
     @test isapprox(pflip(model, -1, -4), 0.0202419; rtol=1e-4)
     @test isapprox(pflip(model, 1, -4), 49.4024; rtol=1e-4)
     @test isapprox(pflip(model, -1, -2), 0.149569; rtol=1e-4)
@@ -16,16 +16,16 @@ using IsingModel: pflip
 end
 
 @testset "energy" begin
-    model = SpinModel(10, 0.0, 0.1)
+    model = IsingSpinModel(10, 0.0, 0.1)
     spin = fill(-1, model.l, model.l)
     @test energy(model, spin) ≈ -200
-    model = SpinModel(10, 0.1, 0.0)
+    model = IsingSpinModel(10, 0.1, 0.0)
     spin = fill(-1, model.l, model.l)
     @test energy(model, spin) ≈ -190
 end
 
 @testset "simulate and save" begin
-    model = SpinModel(10, 0.1, 0.5)
+    model = IsingSpinModel(10, 0.1, 0.5)
     spin = rand([-1,1], model.l, model.l)
     result = simulate!(model, spin; nsteps_heatbath = 100, nsteps_eachbin = 100, nbins = 100)
     filename = joinpath(@__DIR__, "res.dat")

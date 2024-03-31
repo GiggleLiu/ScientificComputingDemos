@@ -1,14 +1,14 @@
-struct SpinModel{RT}
+struct IsingSpinModel{RT}
     l::Int
     h::RT
     beta::RT
     pflp::NTuple{10, RT}
     neigh::Matrix{Int}
 end
-function SpinModel(l::Int, h::RT, beta::RT) where RT
+function IsingSpinModel(l::Int, h::RT, beta::RT) where RT
     pflp = ([exp(-2*s*(i + h) * beta) for s=-1:2:1, i in -4:2:4]...,)
     neigh = lattice(l)
-    SpinModel(l, h, beta, pflp, neigh)
+    IsingSpinModel(l, h, beta, pflp, neigh)
 end
 # Constructs a list neigh[1:4,1:nn] of neighbors of each site
 function lattice(ll)
@@ -17,12 +17,12 @@ function lattice(ll)
 end
 
 # Performs one MC sweep. This version computes the neighbors on the fly.
-function pflip(model::SpinModel, s::Integer, field::Integer)
+@inline function pflip(model::IsingSpinModel, s::Integer, field::Integer)
     return @inbounds model.pflp[(field + 5) + (1 + s) >> 1]
 end
 
-function mcstep!(model::SpinModel, spin)
-    nn = model.l * model.l
+function mcstep!(model::IsingSpinModel, spin)
+    nn = model.l^2
     @inbounds for _ = 1:nn
         s = rand(1:nn)
         field = spin[model.neigh[1, s]] + spin[model.neigh[2, s]] + spin[model.neigh[3, s]] + spin[model.neigh[4, s]]
@@ -45,14 +45,14 @@ struct SimulationResult{RT}
 end
 SimulationResult(nbins, nsteps_eachbin) = SimulationResult(nbins, nsteps_eachbin, Ref(0), zeros(nbins), zeros(nbins), zeros(nbins), zeros(nbins), zeros(nbins))
 
-function energy(model::SpinModel, spin)
+function energy(model::IsingSpinModel, spin)
     sum(1:model.l^2) do i
         s = spin[i]
         - s * (spin[model.neigh[1, i]] + spin[model.neigh[2, i]] + model.h)
     end
 end
 
-function measure!(result::SimulationResult, model::SpinModel, spin)
+function measure!(result::SimulationResult, model::IsingSpinModel, spin)
     @boundscheck checkbounds(result.energy, result.current_bin[])
     m = sum(spin)
     e = energy(model, spin)
@@ -65,7 +65,7 @@ function measure!(result::SimulationResult, model::SpinModel, spin)
     @inbounds result.m4[k] += (m/n)^4
 end
 
-function simulate!(model::SpinModel, spin; nsteps_heatbath, nsteps_eachbin, nbins)
+function simulate!(model::IsingSpinModel, spin; nsteps_heatbath, nsteps_eachbin, nbins)
     # heat bath
     for _ = 1:nsteps_heatbath
         mcstep!(model, spin)    
