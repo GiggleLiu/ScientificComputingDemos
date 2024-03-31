@@ -29,7 +29,7 @@ end
 function SwendsenWangModel(l::Int, h::RT, beta::RT) where RT
     neigh = lattice(l)
     bondspin, spinbond = spinbondmap(neigh)
-    prob = 1 - exp(-2/beta)
+    prob = 1 - exp(-2 * beta)
     SwendsenWangModel(l, h, beta, prob, neigh, bondspin, spinbond)
 end
 num_spin(model::SwendsenWangModel) = model.l^2
