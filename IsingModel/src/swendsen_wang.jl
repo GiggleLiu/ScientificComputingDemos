@@ -87,36 +87,24 @@ function flipclusters!(config::SwendsenWangConfig, model::SwendsenWangModel)
     cstack, cflag = config.cstack, config.cflag
     neighbor, spinbond = model.neigh, model.spinbond
     cflag .= true  # visited sites are marked as false
-    for cseed = 1:length(cflag)    # construct clusters until all sites visited (then cseed=0)
+    @inbounds for cseed = 1:length(cflag)    # construct clusters until all sites visited (then cseed=0)
         cflag[cseed] || continue   # skip visited sites
 
         reset!(cstack)
         push!(cstack, cseed)
         cflag[cseed] = false
 
-        if rand() < 0.5 # flip a cluster with probability 1/2
-            config.spin[cseed] = -config.spin[cseed]
-            while !isempty(cstack)
-                s0 = pop!(cstack)
-                for i=1:4  # for each neighbor of s0
-                    s1 = neighbor[i,s0]
-                    if config.bond[spinbond[i,s0]] && cflag[s1]
-                        push!(cstack, s1)
-                        cflag[s1] = false
-                        config.spin[s1] = -config.spin[s1]
-                    end 
-                end
-            end
-        else # do not flip cluster
-            while !isempty(cstack)
-                s0 = pop!(cstack)
-                for i=1:4
-                    s1 = neighbor[i,s0]
-                    if config.bond[spinbond[i,s0]] && cflag[s1]
-                        push!(cstack,s1)
-                        cflag[s1]=false
-                    end 
-                end
+        doflip = rand() < 0.5 # flip a cluster with probability 1/2
+        doflip && (config.spin[cseed] = -config.spin[cseed])
+        while !isempty(cstack)
+            s0 = pop!(cstack)
+            for i=1:4  # for each neighbor of s0
+                s1 = neighbor[i,s0]
+                if config.bond[spinbond[i,s0]] && cflag[s1]
+                    push!(cstack, s1)
+                    cflag[s1] = false
+                    doflip && (config.spin[s1] = -config.spin[s1])
+                end 
             end
         end
     end

@@ -1,4 +1,4 @@
-using CairoMakie, DelimitedFiles
+using CairoMakie, DelimitedFiles, IsingModel
 
 # an example for testing
 lattice_size = 100
