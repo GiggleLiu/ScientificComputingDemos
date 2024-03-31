@@ -1,0 +1,5 @@
+[deps]
+CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
+IsingModel = "d6d5e6cc-7d26-42f1-a815-3fdb1c237969"
+LaTeXStrings = "b964fa9f-0449-5b57-a5c2-d3ea65f4040f"
+LuxorGraphPlot = "1f49bdf2-22a7-4bc4-978b-948dc219fbbc"

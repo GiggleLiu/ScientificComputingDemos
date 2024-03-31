@@ -30,3 +30,4 @@ Please make sure you have Julia installed on your local machine. If not, please 
 7. [LatticeGasCA](LatticeGasCA/) - Lattice gas cellular automata
 8. [SimpleTensorNetwork](SimpleTensorNetwork/) - Tensor networks for solving spin glass and inference problems
 9. [GraphClustering](GraphClustering/) - Spectral clustering algorithm
+10. [IsingModel](IsingModel/) - Ferromagnetic Ising model using the Monte Carlo method
