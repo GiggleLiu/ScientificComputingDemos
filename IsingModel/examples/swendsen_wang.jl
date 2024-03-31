@@ -4,7 +4,7 @@ using CairoMakie, DelimitedFiles, IsingModel
 lattice_size = 100
 temperature = 2.0
 magnetic_field = 0.0
-@info """Monte Carlo Simulation of Ferromagnetic Ising Model:
+@info """Cluster Monte Carlo Simulation of Ferromagnetic Ising Model - The Swendsen-Wang Algorithm:
 - temperature = $temperature
 - magnetic_field = $magnetic_field
 - lattice_size = $lattice_size
@@ -41,4 +41,19 @@ filename = joinpath(@__DIR__, "swmdata.png")
 save(filename, fig, px_per_unit=2)
 @info "The plot is saved to: `$filename`."
 
-# original time approximately equals to 30s
+for temperature in [0.2, 1.0, 3.0]
+    @info "Generate the video for temperature = $temperature..."
+    model = SwendsenWangModel(lattice_size, magnetic_field, 1/temperature)
+    # animation
+    fig = Figure()
+    ax1 = Axis(fig[1, 1]; aspect = DataAspect()); hidedecorations!(ax1); hidespines!(ax1)  # hides ticks, grid and lables, and frame
+    spin = rand([-1,1], model.l, model.l)
+    spinobs = Observable(spin)
+    Makie.heatmap!(ax1, spinobs, camera=campixel!)
+    filename = joinpath(@__DIR__, "swising-spins-$temperature.mp4")
+    record(fig, filename, 2:1000; framerate = 24) do i
+        mcstep!(model, spin)
+        spinobs[] = spin
+    end
+    @info "The video is recorded in: $filename"
+end

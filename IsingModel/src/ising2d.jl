@@ -34,7 +34,7 @@ end
 end
 
 function mcstep!(model::IsingSpinModel, spin)
-    nn = num_spin(model.l)
+    nn = num_spin(model)
     @inbounds for _ = 1:nn
         s = rand(1:nn)
         field = spin[model.neigh[1, s]] + spin[model.neigh[2, s]] + spin[model.neigh[3, s]] + spin[model.neigh[4, s]]

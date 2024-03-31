@@ -112,21 +112,24 @@ function flipclusters!(config::SwendsenWangConfig, model::SwendsenWangModel)
 end
 
 
+function mcstep!(model::SwendsenWangModel, config::SwendsenWangConfig)
+    castbonds!(config, model)
+    flipclusters!(config, model)
+end
+
 function simulate!(model::SwendsenWangModel, spin; nsteps_heatbath, nsteps_eachbin, nbins)
     @assert length(spin) == model.l^2
     config = SwendsenWangConfig(spin)
 
     for _ = 1:nsteps_heatbath
-        castbonds!(config, model)
-        flipclusters!(config, model)
+        mcstep!(model, config)
     end
 
     result = SimulationResult(nbins, nsteps_eachbin)
     for j = 1:nbins
         result.current_bin[] = j
         for _ = 1:nsteps_eachbin
-            castbonds!(config, model)
-            flipclusters!(config, model)
+            mcstep!(model, config)
             measure!(result, model, config.spin)
         end
     end
