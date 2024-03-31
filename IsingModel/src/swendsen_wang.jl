@@ -1,30 +1,34 @@
+# A stack with fixed size
 mutable struct FixedSizedStack{T}
-    const data::Vector{T}
-    top::Int
+    const data::Vector{T}   # data
+    top::Int                # top index
 end
 FixedSizedStack{T}(n::Int) where T = FixedSizedStack{T}(Vector{T}(undef, n), 0)
 Base.isempty(stack::FixedSizedStack) = stack.top == 0
 Base.length(stack::FixedSizedStack) = stack.top
 reset!(stack::FixedSizedStack) = stack.top = 0
+# push a value to the stack
 function Base.push!(stack::FixedSizedStack, x)
     @boundscheck checkbounds(stack.data, stack.top + 1)
     stack.top += 1
     @inbounds stack.data[stack.top] = x
 end
+# pop a value from the stack
 function Base.pop!(stack::FixedSizedStack)
     @boundscheck checkbounds(stack.data, stack.top)
     stack.top -= 1
     return @inbounds stack.data[stack.top + 1]
 end
 
+# The Swendsen-Wang model for efficient cluster Monte Carlo simulation
 struct SwendsenWangModel{RT} <: AbstractSpinModel
-    l::Int
-    h::RT
-    beta::RT
-    prob::RT
-    neigh::Matrix{Int}
-    bondspin::Matrix{Int}
-    spinbond::Matrix{Int}
+    l::Int                  # lattice size
+    h::RT                   # magnetic field
+    beta::RT                # inverse temperature 1/T
+    prob::RT                # flip probability
+    neigh::Matrix{Int}      # neighbors
+    bondspin::Matrix{Int}   # map bonds to spins
+    spinbond::Matrix{Int}   # map spins to bonds
 end
 function SwendsenWangModel(l::Int, h::RT, beta::RT) where RT
     neigh = lattice(l)
@@ -40,7 +44,6 @@ energy(model::SwendsenWangModel, spin) = ferromagnetic_energy(model.neigh, model
 # - neighbor[i,s] = i:th neighbor sote of site s (i=1,2,3,4)
 # - bondspin[i,b] = i:th site connected to bond b (i=1,2)
 # - spinbond[i,s] = i:th bond connected to spin s (i=1,2,3,4)
-#---------------------------------------------------------------------------------
 function spinbondmap(neighbor)
     nn = size(neighbor, 2)
     bondspin = zeros(Int, 2, 2*nn)
@@ -60,11 +63,12 @@ function spinbondmap(neighbor)
     return bondspin, spinbond
 end
 
+# The spin configuration and the bond configuration for the Swendsen-Wang algorithm
 struct SwendsenWangConfig
-    spin::Matrix{Int}
-    bond::Vector{Bool}
-    cflag::Vector{Bool}   # cache: visited sites are marked as false
-    cstack::FixedSizedStack{Int}   # cache: stack for cluster construction
+    spin::Matrix{Int}               # spin configuration   
+    bond::Vector{Bool}              # bond configuration
+    cflag::Vector{Bool}             # for caching, visited sites are marked as false
+    cstack::FixedSizedStack{Int}    # for caching, stack for cluster construction
 end
 function SwendsenWangConfig(spin)
     nn = length(spin)
@@ -72,7 +76,6 @@ function SwendsenWangConfig(spin)
 end
 
 # Generates a valid bond configuration, given a spin configuration
-#------------------------------------------------------------------
 function castbonds!(config::SwendsenWangConfig, model::SwendsenWangModel)
     for b in eachindex(config.bond)
         # NOTE: only flips parallel spins
@@ -82,7 +85,6 @@ function castbonds!(config::SwendsenWangConfig, model::SwendsenWangModel)
 end
 
 # Constructs all the clusters and flips each of them with probability 1/2
-#-------------------------------------------------------------------------
 function flipclusters!(config::SwendsenWangConfig, model::SwendsenWangModel)
     cstack, cflag = config.cstack, config.cflag
     neighbor, spinbond = model.neigh, model.spinbond
@@ -111,12 +113,13 @@ function flipclusters!(config::SwendsenWangConfig, model::SwendsenWangModel)
     return nothing
 end
 
-
+# Monte Carlo step
 function mcstep!(model::SwendsenWangModel, config::SwendsenWangConfig)
     castbonds!(config, model)
     flipclusters!(config, model)
 end
 
+# Simulate the Ferromagnetic spin model with the Swendsen-Wang method
 function simulate!(model::SwendsenWangModel, spin; nsteps_heatbath, nsteps_eachbin, nbins)
     @assert length(spin) == model.l^2
     config = SwendsenWangConfig(spin)
