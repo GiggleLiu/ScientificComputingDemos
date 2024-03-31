@@ -1,4 +1,6 @@
-struct IsingSpinModel{RT}
+# required interfaces: num_spin, energy
+abstract type AbstractSpinModel end
+struct IsingSpinModel{RT} <: AbstractSpinModel
     l::Int
     h::RT
     beta::RT
@@ -16,13 +18,21 @@ function lattice(ll)
     return reshape([lis[mod1(ci.I[1]+di, ll), mod1(ci.I[2]+dj, ll)] for (di, dj) in ((1, 0), (0, 1), (-1, 0), (0, -1)), ci in CartesianIndices((ll, ll))], 4, ll*ll)
 end
 
+num_spin(model::IsingSpinModel) = model.l^2
+function energy(model::IsingSpinModel, spin)
+    sum(1:model.l^2) do i
+        s = spin[i]
+        - s * (spin[model.neigh[1, i]] + spin[model.neigh[2, i]] + model.h)
+    end
+end
+
 # Performs one MC sweep. This version computes the neighbors on the fly.
 @inline function pflip(model::IsingSpinModel, s::Integer, field::Integer)
     return @inbounds model.pflp[(field + 5) + (1 + s) >> 1]
 end
 
 function mcstep!(model::IsingSpinModel, spin)
-    nn = model.l^2
+    nn = num_spin(model.l)
     @inbounds for _ = 1:nn
         s = rand(1:nn)
         field = spin[model.neigh[1, s]] + spin[model.neigh[2, s]] + spin[model.neigh[3, s]] + spin[model.neigh[4, s]]
@@ -45,18 +55,11 @@ struct SimulationResult{RT}
 end
 SimulationResult(nbins, nsteps_eachbin) = SimulationResult(nbins, nsteps_eachbin, Ref(0), zeros(nbins), zeros(nbins), zeros(nbins), zeros(nbins), zeros(nbins))
 
-function energy(model::IsingSpinModel, spin)
-    sum(1:model.l^2) do i
-        s = spin[i]
-        - s * (spin[model.neigh[1, i]] + spin[model.neigh[2, i]] + model.h)
-    end
-end
-
-function measure!(result::SimulationResult, model::IsingSpinModel, spin)
+function measure!(result::SimulationResult, model::AbstractSpinModel, spin)
     @boundscheck checkbounds(result.energy, result.current_bin[])
     m = sum(spin)
     e = energy(model, spin)
-    n = model.l^2
+    n = num_spin(model)
     k = result.current_bin[]
     @inbounds result.energy[k] += e/n
     @inbounds result.energy2[k] += (e/n)^2
