@@ -36,3 +36,48 @@ using Test, IsingModel, DelimitedFiles
     @test bondspin == bondspin_
     @test spinbond == spinbond_
 end
+
+@testset "fixed sized stack" begin
+    stack = IsingModel.FixedSizedStack{Int}(10)
+    @test isempty(stack)
+    for i = 1:10
+        push!(stack, i)
+    end
+    @test !isempty(stack)
+    @test length(stack) == 10
+    @test_throws BoundsError push!(stack, 11)
+    for i = 10:-1:1
+        @test pop!(stack) == i
+    end
+    @test isempty(stack)
+    @test_throws BoundsError pop!(stack)
+
+    for i = 1:10
+        push!(stack, i)
+    end
+    IsingModel.reset!(stack)
+    @test isempty(stack)
+end
+
+@testset "energy" begin
+    model = SwendsenWangModel(10, 0.0, 0.1)
+    spin = fill(-1, model.l, model.l)
+    @test energy(model, spin) ≈ -200
+    model = SwendsenWangModel(10, 0.1, 0.0)
+    spin = fill(-1, model.l, model.l)
+    @test energy(model, spin) ≈ -190
+end
+
+@testset "simulate and save" begin
+    model = SwendsenWangModel(10, 0.1, 0.5)
+    spin = rand([-1,1], model.l, model.l)
+    result = simulate!(model, spin; nsteps_heatbath = 100, nsteps_eachbin = 100, nbins = 100)
+    filename = joinpath(@__DIR__, "res.dat")
+    write(filename, result)
+    data = readdlm(filename)
+    @testset "data" begin
+        @test size(data) == (100, 5)
+        @test all(data[:,2:5] .>= 0)
+        @test all(data[:,1] .<= 0)
+    end
+end

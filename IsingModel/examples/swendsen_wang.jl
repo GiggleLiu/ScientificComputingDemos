@@ -80,22 +80,4 @@ lattice(ll,nn,neighbor,bondspin,spinbond)
 
 initspin(spin)
 
-@time begin
-
-for i=1:istp
-   castbonds(prob,bondspin,spin,bond)    
-   flipclusters(spin,bond,neighbor,spinbond,cflag,cstck)
-end
-
-mdata=zeros(Float64,5)
-for j=1:bins
-   for i=1:mstp
-      castbonds(prob,bondspin,spin,bond)    
-      flipclusters(spin,bond,neighbor,spinbond,cflag,cstck)
-      measure(ll,spin,mdata)
-   end
-   writedata(mstp,mdata)
-end
-
-end
- 
+# original time approximately equals to 30s

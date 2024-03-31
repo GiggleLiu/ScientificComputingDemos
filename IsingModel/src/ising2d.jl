@@ -19,10 +19,12 @@ function lattice(ll)
 end
 
 num_spin(model::IsingSpinModel) = model.l^2
-function energy(model::IsingSpinModel, spin)
-    sum(1:model.l^2) do i
+energy(model::IsingSpinModel, spin) = ferromagnetic_energy(model.neigh, model.h, spin)
+function ferromagnetic_energy(neigh::AbstractMatrix, h::Real, spin::AbstractMatrix)
+    @boundscheck size(neigh) == (4, length(spin))
+    sum(1:length(spin)) do i
         s = spin[i]
-        - s * (spin[model.neigh[1, i]] + spin[model.neigh[2, i]] + model.h)
+        - s * (spin[neigh[1, i]] + spin[neigh[2, i]] + h)
     end
 end
 
@@ -81,7 +83,7 @@ function simulate!(model::IsingSpinModel, spin; nsteps_heatbath, nsteps_eachbin,
             measure!(result, model, spin)
         end
     end
-    result
+    return result
 end
 
 # Writes the bin averages to the file res.dat, writes a message to 'log.log'

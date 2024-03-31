@@ -1,18 +1,39 @@
+mutable struct FixedSizedStack{T}
+    const data::Vector{T}
+    top::Int
+end
+FixedSizedStack{T}(n::Int) where T = FixedSizedStack{T}(Vector{T}(undef, n), 0)
+Base.isempty(stack::FixedSizedStack) = stack.top == 0
+Base.length(stack::FixedSizedStack) = stack.top
+reset!(stack::FixedSizedStack) = stack.top = 0
+function Base.push!(stack::FixedSizedStack, x)
+    @boundscheck checkbounds(stack.data, stack.top + 1)
+    stack.top += 1
+    @inbounds stack.data[stack.top] = x
+end
+function Base.pop!(stack::FixedSizedStack)
+    @boundscheck checkbounds(stack.data, stack.top)
+    stack.top -= 1
+    return @inbounds stack.data[stack.top + 1]
+end
+
 struct SwendsenWangModel{RT} <: AbstractSpinModel
     l::Int
     h::RT
     beta::RT
-    pflp::NTuple{10, RT}
+    prob::RT
     neigh::Matrix{Int}
     bondspin::Matrix{Int}
     spinbond::Matrix{Int}
 end
 function SwendsenWangModel(l::Int, h::RT, beta::RT) where RT
-    pflp = ([exp(-2*s*(i + h) * beta) for s=-1:2:1, i in -4:2:4]...,)
     neigh = lattice(l)
     bondspin, spinbond = spinbondmap(neigh)
-    SwendsenWangModel(l, h, beta, pflp, neigh, bondspin, spinbond)
+    prob = 1 - exp(-2/beta)
+    SwendsenWangModel(l, h, beta, prob, neigh, bondspin, spinbond)
 end
+num_spin(model::SwendsenWangModel) = model.l^2
+energy(model::SwendsenWangModel, spin) = ferromagnetic_energy(model.neigh, model.h, spin)
 
 # Constructs the tables corresponding to the lattice structure (here 2D square)
 # - the sites (spins) are labeled 1,...,N. The bonds are labeled 1,...,2N.
@@ -39,73 +60,87 @@ function spinbondmap(neighbor)
     return bondspin, spinbond
 end
 
+struct SwendsenWangConfig
+    spin::Matrix{Int}
+    bond::Vector{Bool}
+    cflag::Vector{Bool}   # cache: visited sites are marked as false
+    cstack::FixedSizedStack{Int}   # cache: stack for cluster construction
+end
+function SwendsenWangConfig(spin)
+    nn = length(spin)
+    SwendsenWangConfig(spin, zeros(Bool, 2nn), trues(nn), FixedSizedStack{Int}(nn))
+end
+
 # Generates a valid bond configuration, given a spin configuration
 #------------------------------------------------------------------
-function castbonds(prob::Real, bondspin::AbstractMatrix, spin)    
-    bond = zeros(Bool, size(bondspin, 2))
-    for b in eachindex(bond)
-        if spin[bondspin[1,b]] == spin[bondspin[2,b]]  # parallel spins
-            bond[b] = rand() < prob
-        else
-            bond[b]=false
-        end
+function castbonds!(config::SwendsenWangConfig, model::SwendsenWangModel)
+    for b in eachindex(config.bond)
+        # NOTE: only flips parallel spins
+        config.bond[b] = config.spin[model.bondspin[1,b]] == config.spin[model.bondspin[2,b]] && rand() < model.prob
     end 
-    return bond
+    return config
 end
 
 # Constructs all the clusters and flips each of them with probability 1/2
 #-------------------------------------------------------------------------
-function flipclusters(spin,bond,neighbor,spinbond,cflag,cstack)
-   cflag.=true
-   cseed::Int64=1
-   nstack::Int64=1
+function flipclusters!(config::SwendsenWangConfig, model::SwendsenWangModel)
+    cstack, cflag = config.cstack, config.cflag
+    neighbor, spinbond = model.neigh, model.spinbond
+    cflag .= true  # visited sites are marked as false
+    for cseed = 1:length(cflag)    # construct clusters until all sites visited (then cseed=0)
+        cflag[cseed] || continue   # skip visited sites
 
-   while cseed > 0    # construct clusters until all sites visited (then cseed=0)
-      nstack=1
-      cstack[1]=cseed
-      cflag[cseed]=false
+        reset!(cstack)
+        push!(cstack, cseed)
+        cflag[cseed] = false
 
-      if rand(0:1) == 1 # flip cluster 
-         spin[cseed]=-spin[cseed]
-         while nstack > 0
-            s0::Int64=cstack[nstack]
-            nstack=nstack-1
-            for i=1:4
-               s1::Int64=neighbor[i,s0]
-               if bond[spinbond[i,s0]] && cflag[s1]
-                  cflag[s1]=false
-                  nstack=nstack+1
-                  cstack[nstack]=s1
-                  spin[s1]=-spin[s1]
-               end 
+        if rand() < 0.5 # flip a cluster with probability 1/2
+            config.spin[cseed] = -config.spin[cseed]
+            while !isempty(cstack)
+                s0 = pop!(cstack)
+                for i=1:4  # for each neighbor of s0
+                    s1 = neighbor[i,s0]
+                    if config.bond[spinbond[i,s0]] && cflag[s1]
+                        push!(cstack, s1)
+                        cflag[s1] = false
+                        config.spin[s1] = -config.spin[s1]
+                    end 
+                end
             end
-         end
-
-      else # do not flip cluster
-         while nstack > 0
-            s0::Int64=cstack[nstack]
-            nstack=nstack-1
-            for i=1:4
-               s1::Int64=neighbor[i,s0]
-               if bond[spinbond[i,s0]] && cflag[s1]
-                  cflag[s1]=false
-                  nstack=nstack+1
-                  cstack[nstack]=s1
-               end 
+        else # do not flip cluster
+            while !isempty(cstack)
+                s0 = pop!(cstack)
+                for i=1:4
+                    s1 = neighbor[i,s0]
+                    if config.bond[spinbond[i,s0]] && cflag[s1]
+                        push!(cstack,s1)
+                        cflag[s1]=false
+                    end 
+                end
             end
-         end
-      end
+        end
+    end
+    return nothing
+end
 
-      dseed=cseed
-      for i=cseed+1:length(spin)   # loop until a not visited site is found; the next cluster ssed
-         if cflag[i]
-            cseed=i
-            break
-         end
-      end
-      if dseed==cseed   # if no not-visited site is found, cseed=0, which signals completion 
-         cseed=0
-      end
-   end
-   return nothing
+
+function simulate!(model::SwendsenWangModel, spin; nsteps_heatbath, nsteps_eachbin, nbins)
+    @assert length(spin) == model.l^2
+    config = SwendsenWangConfig(spin)
+
+    for _ = 1:nsteps_heatbath
+        castbonds!(config, model)
+        flipclusters!(config, model)
+    end
+
+    result = SimulationResult(nbins, nsteps_eachbin)
+    for j = 1:nbins
+        result.current_bin[] = j
+        for _ = 1:nsteps_eachbin
+            castbonds!(config, model)
+            flipclusters!(config, model)
+            measure!(result, model, config.spin)
+        end
+    end
+    return result
 end
