@@ -48,12 +48,16 @@ for temperature in [0.2, 1.0, 3.0]
     fig = Figure()
     ax1 = Axis(fig[1, 1]; aspect = DataAspect()); hidedecorations!(ax1); hidespines!(ax1)  # hides ticks, grid and lables, and frame
     spin = rand([-1,1], model.l, model.l)
+    config = SwendsenWangConfig(spin)
     spinobs = Observable(spin)
     Makie.heatmap!(ax1, spinobs, camera=campixel!)
+    txt = Observable("t = 0")
+    Makie.text!(ax1, -20, lattice_size-10; text=txt, color=:black, fontsize=30, strokecolor=:white)
     filename = joinpath(@__DIR__, "swising-spins-$temperature.mp4")
     record(fig, filename, 2:1000; framerate = 24) do i
-        mcstep!(model, spin)
-        spinobs[] = spin
+        mcstep!(model, config)
+        spinobs[] = config.spin
+        txt[] = "t = $(i-1)"
     end
     @info "The video is recorded in: $filename"
 end

@@ -49,14 +49,17 @@ for temperature in [0.2, 1.0, 3.0]
     model = IsingSpinModel(lattice_size, magnetic_field, 1/temperature)
     # animation
     fig = Figure()
-    ax1 = Axis(fig[1, 1]; aspect = DataAspect()); hidedecorations!(ax1); hidespines!(ax1)  # hides ticks, grid and lables, and frame
     spin = rand([-1,1], model.l, model.l)
     spinobs = Observable(spin)
+    ax1 = Axis(fig[1, 1]; aspect = DataAspect()); hidedecorations!(ax1); hidespines!(ax1)  # hides ticks, grid and lables, and frame
     Makie.heatmap!(ax1, spinobs, camera=campixel!)
+    txt = Observable("t = 0")
+    Makie.text!(ax1, -30, lattice_size-10; text=txt, color=:black, fontsize=30, strokecolor=:white)
     filename = joinpath(@__DIR__, "ising-spins-$temperature.mp4")
     record(fig, filename, 2:1000; framerate = 24) do i
         mcstep!(model, spin)
         spinobs[] = spin
+        txt[] = "t = $(i-1)"
     end
     @info "The video is recorded in: $filename"
 end
