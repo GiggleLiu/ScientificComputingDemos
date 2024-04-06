@@ -6,8 +6,9 @@ struct IsingSpinModel{RT} <: AbstractSpinModel
     l::Int                  # lattice size
     h::RT                   # magnetic field
     beta::RT                # inverse temperature 1/T
+
     pflp::NTuple{10, RT}    # precompiled flip probability
-    neigh::Matrix{Int}      # neighbors
+    neigh::Matrix{Int}      # neighbors, neigh[1-4, i]
 end
 function IsingSpinModel(l::Int, h::RT, beta::RT) where RT
     pflp = ([exp(-2*s*(i + h) * beta) for s=-1:2:1, i in -4:2:4]...,)
@@ -18,7 +19,10 @@ end
 # Constructs a list neigh[1:4,1:nn] of neighbors of each site
 function lattice(ll)
     lis = LinearIndices((ll, ll))
-    return reshape([lis[mod1(ci.I[1]+di, ll), mod1(ci.I[2]+dj, ll)] for (di, dj) in ((1, 0), (0, 1), (-1, 0), (0, -1)), ci in CartesianIndices((ll, ll))], 4, ll*ll)
+    return reshape([lis[mod1(ci.I[1]+di, ll), mod1(ci.I[2]+dj, ll)]
+        for (di, dj) in ((1, 0), (0, 1), (-1, 0), (0, -1)),
+            ci in CartesianIndices((ll, ll))],
+            4, ll*ll)
 end
 
 # Returns the number of spins

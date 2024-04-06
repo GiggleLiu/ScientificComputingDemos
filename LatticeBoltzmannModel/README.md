@@ -1,3 +1,5 @@
 # LatticeBoltzmannModel
 
-[![Build Status](https://github.com/GiggleLiu/LatticeBoltzmannModel.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/GiggleLiu/LatticeBoltzmannModel.jl/actions/workflows/CI.yml?query=branch%3Amain)
+Implement Lattice Boltzmann Fluid Dynamics in Julia.
+
+Reference: https://physics.weber.edu/schroeder/fluids/

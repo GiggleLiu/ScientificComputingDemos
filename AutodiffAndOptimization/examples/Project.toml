@@ -1,0 +1,4 @@
+[deps]
+AutodiffAndOptimization = "105ffcd2-060d-495b-a985-7b4e117e6040"
+CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
+Printf = "de0858da-6303-5e67-8744-51eddeeeb8d7"
