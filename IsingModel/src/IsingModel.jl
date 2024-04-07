@@ -5,6 +5,7 @@ using DelimitedFiles
 export IsingSpinModel, mcstep!, SimulationResult, energy, measure!, simulate!, num_spin
 export SpinGlassModel, load_spinglass, anneal, random_config
 export SwendsenWangModel, castbonds, SwendsenWangConfig
+export autocorrelation_time
 
 include("ising2d.jl")
 include("swendsen_wang.jl")

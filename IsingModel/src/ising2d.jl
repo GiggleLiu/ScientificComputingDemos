@@ -61,8 +61,26 @@ struct SimulationResult{RT}
     m::Vector{RT}                   # |m|
     m2::Vector{RT}                  # m^2
     m4::Vector{RT}                  # m^4
+    mstack::Vector{RT}              # m(t) stack with maximum size K + 1
+    acorr::Vector{RT}               # autocorrelation time of size K
 end
-SimulationResult(nbins, nsteps_eachbin) = SimulationResult(nbins, nsteps_eachbin, Ref(0), zeros(nbins), zeros(nbins), zeros(nbins), zeros(nbins), zeros(nbins))
+SimulationResult(nbins, nsteps_eachbin, acorr_maxtau::Int) = SimulationResult(
+        nbins, nsteps_eachbin, Ref(0), zeros(nbins),
+        zeros(nbins), zeros(nbins), zeros(nbins), zeros(nbins),
+        zeros(0), zeros(acorr_maxtau)
+)
+
+mean(x::AbstractVector) = sum(x) / length(x)
+# Measures the autocorrelation time from the simulation result
+function autocorrelation_time(result::SimulationResult)
+    mean_m = mean(result.m) / result.nsteps_eachbin
+    mean_m2 = mean(result.m2) / result.nsteps_eachbin
+    correlation = result.acorr ./ ((result.nsteps_eachbin * result.nbins) - length(result.acorr))
+    correlation = (correlation .- mean_m^2) ./ (mean_m2 - mean_m^2)
+    return vcat(1, correlation)
+end
+
+
 
 # Measures the energy and magnetization
 function measure!(result::SimulationResult, model::AbstractSpinModel, spin)
@@ -76,15 +94,24 @@ function measure!(result::SimulationResult, model::AbstractSpinModel, spin)
     @inbounds result.m[k] += abs(m/n)
     @inbounds result.m2[k] += (m/n)^2
     @inbounds result.m4[k] += (m/n)^4
+    pushfirst!(result.mstack, abs(m/n))
+    if length(result.mstack) >= length(result.acorr) + 1
+        for τ = 1:length(result.acorr)
+            result.acorr[τ] += result.mstack[1] * result.mstack[τ + 1]
+        end
+        pop!(result.mstack)
+    end
 end
 
+
+
 # Simulates the Ising model
-function simulate!(model::IsingSpinModel, spin; nsteps_heatbath, nsteps_eachbin, nbins)
+function simulate!(model::IsingSpinModel, spin; nsteps_heatbath, nsteps_eachbin, nbins, acorr_maxtau)
     # heat bath
     for _ = 1:nsteps_heatbath
         mcstep!(model, spin)    
     end
-    result = SimulationResult(nbins, nsteps_eachbin)
+    result = SimulationResult(nbins, nsteps_eachbin, acorr_maxtau)
     for j=1:nbins
         result.current_bin[] = j
         for _ = 1:nsteps_eachbin
