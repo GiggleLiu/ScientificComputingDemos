@@ -21,9 +21,11 @@ struct Body{D, T}
     m::T
 end
 
+solar_system_data() = CSV.read(joinpath(pkgdir(PhysicsSimulation), "data", "solar_system.csv"), DataFrame)
+solar_system() = newton_system_from_data(solar_system_data())
+
 # mass: kg
-function solar_system()
-    data = CSV.read(joinpath(pkgdir(PhysicsSimulation), "data", "solar_system.csv"), DataFrame)
+function newton_system_from_data(data)
     map(eachrow(data)) do planet
         r = Point(planet.x, planet.y, planet.z)
         v = Point(planet.vx, planet.vy, planet.vz) * dayToYear
