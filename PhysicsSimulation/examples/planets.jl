@@ -23,9 +23,9 @@ end
 data = PhysicsSimulation.Bodies.solar_system_data()
 @info "Loading solar system data: $data"
 const solar = PhysicsSimulation.Bodies.newton_system_from_data(data)
-const Δt, nsteps = 0.01, 1000
-@info "simulate the solar system with time step $Δt and $nsteps steps"
-states = leapfrog_simulation(solar; dt=Δt, nsteps)
+const Δt, num_steps = 0.01, 1000
+@info "simulate the solar system with time step $Δt and $num_steps steps"
+states = leapfrog_simulation(solar; dt=Δt, nsteps=num_steps)
 
 make_movie(joinpath(@__DIR__, "solar-system.mp4"), states, [k == 4 ? :yellow : :blue for k in 1:length(solar)])
 
@@ -40,8 +40,8 @@ end
 
 function loss_hit_earth(v0)
     # simulate the system
-    lf = LeapFrogSystem(modified_solar_system(v0))
-    for _ = 1:nsteps
+    lf = LeapFrogSystem(modified_solar_system(PhysicsSimulation.Point(v0...)))
+    for _ = 1:num_steps
         step!(lf, Δt)
     end
     return PhysicsSimulation.distance(lf.sys.bodies[end].r, lf.sys.bodies[4].r)  # final distance to earch
@@ -52,7 +52,7 @@ y0 = loss_hit_earth(v0)
 @info "Now I throw a stone on Pluto with velocity $v0, and the final distance to earth is $y0."
 
 msolar0 = modified_solar_system(v0)
-states0 = leapfrog_simulation(msolar0; dt=Δt, nsteps)
+states0 = leapfrog_simulation(msolar0; dt=Δt, nsteps=num_steps)
 color = [k == length(msolar0) ? :red : (k == 4 ? :yellow : :blue) for k in 1:length(msolar0)]
 make_movie(joinpath(@__DIR__, "solar-system-hit-earth-beforeopt.mp4"), states0, color)
 
@@ -84,8 +84,8 @@ vopt = hit_earth(v0)
 yopt = loss_hit_earth(vopt)
 @info "The optimized velocity is $vopt, and the final distance to earth is $yopt."
 
-msolar = modified_solar_system(vopt)
-states = leapfrog_simulation(msolar; dt=Δt, nsteps)
+msolar = modified_solar_system(PhysicsSimulation.Point(vopt...))
+states = leapfrog_simulation(msolar; dt=Δt, nsteps=num_steps)
 make_movie(joinpath(@__DIR__, "solar-system-hit-earth.mp4"), states, color)
 
 # orbitals
