@@ -3,8 +3,8 @@ using Profile
 
 
 # an example for testing
-lattice_sizes = [4, 7, 8, 14, 16, 28, 32, 64, 128]
-acorr_maxtaus = Dict(4 => 10, 7 => 21, 8 => 23, 14 => 25, 16 => 28, 28 => 50, 32 => 75, 64 => 150, 128 => 350)
+lattice_sizes = [4, 7, 8, 14, 16, 28, 32, 56]
+τ_ranges = Dict(4 => 1:10, 7 => 1:25, 8 => 1:18, 14 => 1:23, 16 => 1:16, 28 => 1:18, 32 => 1:45, 56 => 1:60)
 temperature = 2.269
 magnetic_field = 0.0
 nsteps_heatbath = 1000
@@ -29,13 +29,13 @@ for lattice_size in lattice_sizes
     @info """Start the simulation...
     - Monte Carlo steps: ($(nsteps_heatbath) steps heat bath) + ($(nsteps_eachbin) steps each bin) * ($nbins bins))
     """
-    result = simulate!(model, spin; nsteps_heatbath, nsteps_eachbin, nbins, acorr_maxtau=acorr_maxtaus[lattice_size])
 
-
-    acorr = autocorrelation_time(result)
+    result = @time simulate!(model, spin; nsteps_heatbath=nsteps_heatbath, nbins=nbins, nsteps_eachbin=nsteps_eachbin)
+    τ_range = τ_ranges[lattice_size]
+    acorr = [autocorrelation_time(result.mstack, t) for t in τ_range]
     filename = joinpath(@__DIR__, "acorr_sw_$lattice_size.dat")
-    write(filename, acorr)
-    total = sum(acorr) - 0.5
+    writedlm(filename, acorr)
+    total = sum(acorr) + 0.5
     sums[lattice_size] = total
 end
 
@@ -47,14 +47,14 @@ function calculate_Theta_int(L)
 end
 
 # 定义数据点
-L_values = [4, 7, 8, 14, 16, 28, 32, 64, 128]
+L_values = [4, 7, 8, 14, 16, 28, 32, 56]
 Theta_int_values = calculate_Theta_int.(L_values)
 result = sort(collect(sums), by = tuple -> tuple[2])
 sorted_values = [tuple[2] for tuple in result]
 
 scatter!(ax, (L_values), sorted_values;
     color = :black,
-    markersize = 10,
+    markersize = 13,
     marker = :circle,
     linestyle = :none
 )
@@ -66,6 +66,3 @@ color = :red,
 )
 
 f
-
-# save the figure
-save(joinpath(@__DIR__, "figure_14.png"), f)

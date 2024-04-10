@@ -61,23 +61,22 @@ struct SimulationResult{RT}
     m::Vector{RT}                   # |m|
     m2::Vector{RT}                  # m^2
     m4::Vector{RT}                  # m^4
-    mstack::Vector{RT}              # m(t) stack with maximum size K + 1
-    acorr::Vector{RT}               # autocorrelation time of size K
+    mstack::Vector{RT}              # |m(t)|
 end
-SimulationResult(nbins, nsteps_eachbin, acorr_maxtau::Int) = SimulationResult(
+SimulationResult(nbins, nsteps_eachbin) = SimulationResult(
         nbins, nsteps_eachbin, Ref(0), zeros(nbins),
         zeros(nbins), zeros(nbins), zeros(nbins), zeros(nbins),
-        zeros(0), zeros(acorr_maxtau)
+        zeros(0)
 )
 
 mean(x::AbstractVector) = sum(x) / length(x)
 # Measures the autocorrelation time from the simulation result
-function autocorrelation_time(result::SimulationResult)
-    mean_m = mean(result.m) / result.nsteps_eachbin
-    mean_m2 = mean(result.m2) / result.nsteps_eachbin
-    correlation = result.acorr ./ ((result.nsteps_eachbin * result.nbins) - length(result.acorr))
-    correlation = (correlation .- mean_m^2) ./ (mean_m2 - mean_m^2)
-    return vcat(1, correlation)
+function autocorrelation_time(mstack::Vector{RT}, τ::Real) where RT
+    mean_m = mean(mstack[1:end-τ])
+    mean_m2 = mean(mstack[1:end-τ] .^ 2)
+    @show mean_m2 length(mstack)
+    correlation = mean(mstack[1:end-τ] .* mstack[1+τ:end])
+    return (correlation - mean_m^2) / (mean_m2 - mean_m^2)
 end
 
 
@@ -94,13 +93,7 @@ function measure!(result::SimulationResult, model::AbstractSpinModel, spin)
     @inbounds result.m[k] += abs(m/n)
     @inbounds result.m2[k] += (m/n)^2
     @inbounds result.m4[k] += (m/n)^4
-    pushfirst!(result.mstack, abs(m/n))
-    if length(result.mstack) >= length(result.acorr) + 1
-        for τ = 1:length(result.acorr)
-            result.acorr[τ] += result.mstack[1] * result.mstack[τ + 1]
-        end
-        pop!(result.mstack)
-    end
+    push!(result.mstack, abs(m/n))
 end
 
 
