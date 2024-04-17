@@ -43,7 +43,7 @@ end
 println(sums)
 
 function calculate_Theta_int(L)
-    return 0.75 + 0.85 * log(L)
+    return 0.75 + 0.835 * log(L)
 end
 
 # 定义数据点
@@ -66,3 +66,8 @@ color = :red,
 )
 
 f
+
+# Save the figure
+filename = joinpath(@__DIR__, "acorr_sw.png")
+save(filename, f, px_per_unit=2)
+
