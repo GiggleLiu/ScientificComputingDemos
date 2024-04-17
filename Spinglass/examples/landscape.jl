@@ -1,9 +1,9 @@
-using IsingModel
+using Spinglass
 
 using Random
 Random.seed!(2)
 const tempscales = 10 .- ((1:64) .- 1) .* 0.15 |> collect
-const sap = load_spinglass(pkgdir(IsingModel, "data", "example.txt"))
+const sap = load_spinglass(pkgdir(Spinglass, "data", "example.txt"))
  
 @time anneal(30, sap, tempscales, 4000)
 

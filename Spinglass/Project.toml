@@ -3,7 +3,13 @@ uuid = "0a303999-d7af-4ce6-be35-aa14885e5515"
 authors = ["GiggleLiu"]
 version = "1.0.0-DEV"
 
+[deps]
+DelimitedFiles = "8bb1440f-4735-579b-a4ab-409b98df4dab"
+GenericTensorNetworks = "3521c873-ad32-4bb4-b63d-f4f178f42b49"
+
 [compat]
+DelimitedFiles = "1"
+GenericTensorNetworks = "2"
 julia = "1"
 
 [extras]

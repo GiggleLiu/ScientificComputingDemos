@@ -8,7 +8,3 @@ end
 @testset "swendsen_wang" begin
     include("swendsen_wang.jl")
 end
-
-@testset "spinglass" begin
-    include("spinglass.jl")
-end

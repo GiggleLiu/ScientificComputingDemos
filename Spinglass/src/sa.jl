@@ -1,5 +1,3 @@
-using DelimitedFiles
-
 """
     SpinGlassModel{T<:Real}
 

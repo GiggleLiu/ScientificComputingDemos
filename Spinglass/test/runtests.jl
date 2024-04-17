@@ -1,6 +1,6 @@
 using Spinglass
 using Test
 
-@testset "Spinglass.jl" begin
-    # Write your tests here.
+@testset "Spinglass" begin
+    include("spinglass.jl")
 end

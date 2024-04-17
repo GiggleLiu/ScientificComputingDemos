@@ -8,6 +8,5 @@ export SwendsenWangModel, castbonds, SwendsenWangConfig
 
 include("ising2d.jl")
 include("swendsen_wang.jl")
-include("spinglass.jl")
 
 end
