@@ -41,4 +41,5 @@ Please make sure you have Julia installed on your local machine. If not, please 
 
 ### Statistical physics and computational complexity
 1. [IsingModel](IsingModel/) - Ferromagnetic Ising model using the Monte Carlo method
-2. [SimpleTensorNetwork](SimpleTensorNetwork/) - Tensor networks for solving spin glass and inference problems
+2. [Spinglass](Spinglass/) - Spin glass model using tensor networks and simulated annealing.
+3. [SimpleTensorNetwork](SimpleTensorNetwork/) - Tensor networks for solving spin glass and inference problems
