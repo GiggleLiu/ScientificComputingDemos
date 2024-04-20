@@ -24,6 +24,6 @@ image!(ax, barrier_img')
 using BenchmarkTools
 @benchmark step!($(deepcopy(lb)))
 
-CairoMakie.record(fig, joinpath(@__DIR__, "barrier.mp4"), 1:100; framerate = 10) do i
+CairoMakie.record(fig, joinpath(@__DIR__, "barrier_gpu.mp4"), 1:100; framerate = 10) do i
     vorticity[] = curls[i+1]'
 end
