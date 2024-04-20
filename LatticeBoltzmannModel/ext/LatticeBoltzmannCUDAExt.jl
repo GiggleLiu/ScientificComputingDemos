@@ -1,4 +1,6 @@
+module LatticeBoltzmannCUDAExt
 using CUDA
+using LatticeBoltzmannModel: Cell, AbstractLBConfig, directions, flip_direction_index, density, LatticeBoltzmann
 using LatticeBoltzmannModel
 
 function LatticeBoltzmannModel.stream!(lb::AbstractLBConfig{2, N}, newgrid::CuMatrix{D}, grid::CuMatrix{D}, barrier::CuMatrix{Bool}) where {N, T, D<:Cell{N, T}}
@@ -23,4 +25,5 @@ end
 
 function CUDA.cu(lb::LatticeBoltzmann{D, N}) where {D, N}
     return LatticeBoltzmann(lb.config, CuArray(lb.grid), CuArray(lb.barrier))
+end
 end
