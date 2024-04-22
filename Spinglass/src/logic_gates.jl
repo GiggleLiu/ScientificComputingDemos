@@ -14,6 +14,12 @@ function sg_gadget_and()
     SGGadget(sg, [1, 2], [3])
 end
 
+function sg_gadget_set0()
+    g = SimpleGraph(1)
+    sg = SpinGlass(g, Int[], [-1])
+    SGGadget(sg, Int[], [1])
+end
+
 function sg_gadget_not()
     g = SimpleGraph(2)
     add_edge!(g, 1, 2)
@@ -86,4 +92,50 @@ function truth_table(ga::SGGadget)
         end
     end
     return output
+end
+
+function compose_multiplier(m::Int, n::Int)
+    component = sg_gadget_arraymul().sg
+    sg = deepcopy(component)
+    modules = []
+    N = 0
+    newindex!() = (N += 1)
+    p = [newindex!() for _ = 1:m]
+    q = [newindex!() for _ = 1:n]
+    out = Int[]
+    spre = [newindex!() for _ = 1:m]
+    for s in spre push!(modules, [sg_gadget_set0().sg, [s]]) end
+    for j = 1:n
+        s = [newindex!() for _ = 1:m]
+        cpre = newindex!()
+        push!(modules, [sg_gadget_set0().sg, [cpre]])
+        for i = 1:m
+            c = newindex!()
+            pins = [p[i], q[j], newindex!(), cpre, spre[i], c, s[i]]
+            push!(modules, [component, pins])
+            cpre = c
+        end
+        if j == n
+            append!(out, s)
+            push!(out, cpre)
+        else
+            # update spre
+            push!(out, popfirst!(s))
+            push!(s, cpre)
+            spre = s
+        end
+    end
+    sg = SpinGlass(N, Vector{Int}[], Int[])
+    for (m, pins) in modules
+        add_sg!(sg, m, pins)
+    end
+    return SGGadget(sg, [p..., q...], out)
+end
+
+function set_input!(ga::SGGadget, inputs::Vector{Int})
+    @assert length(inputs) == length(ga.inputs)
+    for (k, v) in zip(ga.inputs, inputs)
+        add_clique!(ga.sg, [k], v == 1 ? 1 : -1)  # 1 for down, 0 for up
+    end
+    return ga
 end

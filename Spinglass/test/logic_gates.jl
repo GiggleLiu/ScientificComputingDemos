@@ -27,3 +27,12 @@ end
         tt[[1, 0, 1, 1]] == tt[[0, 1, 1, 1]] == tt[[0, 0, 1, 1]] == [1, 0]
     @test tt[[1, 1, 1, 1]] == [1, 1]
 end
+
+@testset "arraymul compose" begin
+    arr = Spinglass.compose_multiplier(2, 2)
+    @test arr.sg.n == 20
+    tt = truth_table(arr)
+    @test length(tt) == 16
+    Spinglass.set_input!(arr, [0, 1, 0, 1])  # 2 x 2 == 4
+    @test truth_table(arr) == Dict([0, 1, 0, 1] => [0, 0, 1, 0])
+end
