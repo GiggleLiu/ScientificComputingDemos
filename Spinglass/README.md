@@ -9,9 +9,10 @@ H = \sum_{(i,j)\in E}J_{ij}\sigma_i\sigma_j + \sum_{i\in V}h_i\sigma_i,
 where $J_{ij}$ and $h_i$ are the coupling constants and the external fields, respectively, $\sigma_i\in\{-1,1\}$ are the spins, and the sum is over all edges of the graph.
 
 ## Contents
-1. Generic tensor network contraction for the solution space properties of spin-glass problem on a 3-regular graph.[^Liu2021][^Liu2023]
-2. Simulated annealing for the solution space properties of spin-glass problem on a square lattice.[^Cain2023][^SSSS]
-3. Reducing the spin-glass problem and independent set problem to circuit satisfiability problem.[^Nguyen2023][^Glover2019]
+Consider the problem of solving the ground state of the spin-glass model on a 3-regular graph. We provide the following methods to solve the problem:
+1. Generic tensor network contraction that suited for obtaining solution space properties.[^Liu2021][^Liu2023]
+2. Simulated annealing for the solution space properties of spin-glass problem on a fully connected graph.[^Cain2023][^SSSS]
+3. Reducing the spin-glass problem to the circuit satisfiability problem.[^Nguyen2023][^Glover2019]
 
 ## To run
 

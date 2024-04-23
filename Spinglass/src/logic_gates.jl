@@ -6,6 +6,19 @@ struct SGGadget{WT}
     inputs::Vector{Int}
     outputs::Vector{Int}
 end
+function Base.show(io::IO, ga::SGGadget)
+    println(io, "SGGadget with $(ga.sg.n) variables")
+    println(io, "Inputs: $(ga.inputs)")
+    println(io, "Outputs: $(ga.outputs)")
+    print(io, "H = ")
+    for (k, c) in enumerate(ga.sg.cliques)
+        w = ga.sg.weights[k]
+        iszero(w) && continue
+        k == 1 || print(io, w >= 0 ? " + " : " - ")
+        print(io, abs(w), "*", join(["s$ci" for ci in c], ""))
+    end
+end
+Base.show(io::IO, ::MIME"text/plain", ga::SGGadget) = show(io, ga)
 
 function sg_gadget_and()
     g = SimpleGraph(3)
