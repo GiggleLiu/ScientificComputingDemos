@@ -1,5 +1,6 @@
+# method 1: Generic tensor network
 include("tropical_tensor_network.jl")
 
-# simulated annealing
+# method 2: simulated annealing
 include("spinglass_sa.jl")
 include("mis.jl")
