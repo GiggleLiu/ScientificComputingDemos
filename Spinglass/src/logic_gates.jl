@@ -1,4 +1,6 @@
-# Ref: https://support.dwavesys.com/hc/en-us/community/posts/1500000470701-What-are-the-cost-function-for-NAND-and-NOR-gates
+# Ref:
+# - https://support.dwavesys.com/hc/en-us/community/posts/1500000470701-What-are-the-cost-function-for-NAND-and-NOR-gates
+# - https://journals.aps.org/prxquantum/abstract/10.1103/PRXQuantum.4.010316
 struct SGGadget{WT}
     sg::SpinGlass{WT}
     inputs::Vector{Int}
