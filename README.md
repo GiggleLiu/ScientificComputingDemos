@@ -30,9 +30,8 @@ Please make sure you have Julia installed on your local machine. If not, please 
 4. [CompressedSensing](CompressedSensing/) - Compressed sensing for image compression
 
 ### Machine learning and optimization
-1. [AutodiffAndOptimization](AutodiffAndOptimization/) - Automatic differentiating linear algebra functions and optimization
-2. [GraphClustering](GraphClustering/) - Spectral clustering algorithm
-3. [KernelPCA](KernelPCA/) - Kernel method and Kernel PCA
+1. [GraphClustering](GraphClustering/) - Spectral clustering algorithm
+2. [KernelPCA](KernelPCA/) - Kernel method and Kernel PCA
 
 ### Physics simulation
 1. [PhysicsSimulation](PhysicsSimulation/) - Simulate a spring system, leapfrog method, and eigenvalue problem
