@@ -12,6 +12,12 @@ LuxorGraphPlot = "1f49bdf2-22a7-4bc4-978b-948dc219fbbc"
 SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 
 [compat]
+Clustering = "0.15"
+Graphs = "1"
+KrylovKit = "0.7"
+LuxorGraphPlot = "0.4"
+LinearAlgebra = "1"
+SparseArrays = "1"
 julia = "1"
 
 [extras]

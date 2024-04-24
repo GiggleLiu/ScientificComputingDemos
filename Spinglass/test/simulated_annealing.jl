@@ -2,11 +2,13 @@ using Spinglass, Test, Random
 
 @testset "loading" begin
     sap = load_spinglass(pkgdir(Spinglass, "data", "example.txt"))
-    @test size(sap.coupling) == (300, 300)
+    @test sap.n == 300
+    sapsa = Spinglass.SpinGlassSA(sap)
+    @test size(sapsa.coupling) == (300, 300)
 end
 
 @testset "random config" begin
-    sap = load_spinglass(pkgdir(Spinglass, "data", "example.txt"))
+    sap = Spinglass.SpinGlassSA(load_spinglass(pkgdir(Spinglass, "data", "example.txt")))
     initial_config = random_config(sap)
     @test initial_config.config |> length == 300
     @test eltype(initial_config.config) == Int

@@ -1,6 +1,5 @@
 using Spinglass
 
-@info "Simulated annealing for the spinglass model"
 filename = pkgdir(Spinglass, "data", "example.txt")
 sap = load_spinglass(filename)
 
