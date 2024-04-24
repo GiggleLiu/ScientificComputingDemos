@@ -2,8 +2,8 @@ using Spinglass
 
 using Random
 Random.seed!(2)
-const tempscales = 10 .- ((1:64) .- 1) .* 0.15 |> collect
-const sap = load_spinglass(pkgdir(Spinglass, "data", "example.txt"))
+tempscales = 10 .- ((1:64) .- 1) .* 0.15 |> collect
+sap = load_spinglass(pkgdir(Spinglass, "data", "example.txt"))
  
 @time anneal(30, sap, tempscales, 4000)
 
@@ -27,6 +27,7 @@ function zstack_layout(graph, sets; C=2.0, xyratio=3, deltaz=10.0)
     return vcat(map(loc->map(x->(x[1] * xyratio, x[2]), loc), locs)...)
 end
 
+configs = solve()
 cgraph = connect_by_hamming_distance(vcat(configs.coeffs[3].data, configs.coeffs[1].data))
 nc1, nc2 = length(configs.coeffs[3].data), length(configs.coeffs[1].data)
 locs_zstack = zstack_layout(cgraph, [1:nc1, nc1+1:nc1+nc2]; deltaz=3)

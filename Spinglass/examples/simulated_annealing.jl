@@ -1,10 +1,9 @@
 using Spinglass
 
-@info "Simulated annealing for the spinglass model"
 filename = pkgdir(Spinglass, "data", "example.txt")
 sap = load_spinglass(filename)
 
-@info "Loaded spinglass from: $filename, number of spins = $(size(sap.coupling, 1))"
+@info "Loaded spinglass from: $filename, number of spins = $(sap.n)"
 tempscales = 10 .- (1:64 .- 1) .* 0.15
 nupdate_each_temperature = 4000
 nrun = 30

@@ -20,7 +20,7 @@ struct GraphViz{GT<:AbstractGraph}
     edge_colors::Vector{String}
 end
 function GraphViz(g::AbstractGraph)
-    GraphViz(g, [(x, y) for (x, y) in zip(LuxorGraphPlot.spring_layout(g)...)],
+    GraphViz(g, [50 .* (x, y) for (x, y) in zip(LuxorGraphPlot.spring_layout(g)...)],
 
         fill("", nv(g)),
         fill("black", nv(g)),
@@ -63,7 +63,7 @@ Draw the graph with the given style.
 ### Keyword Arguments
 - `filename::String=nothing`: the filename to save the drawing
 """
-drawing(gv::GraphViz; filename=nothing) = LuxorGraphPlot.show_graph(gv.graph; locs=gv.locs, edge_colors=gv.edge_colors, vertex_colors=gv.vertex_colors, texts=gv.vertex_labels, vertex_sizes=gv.vertex_sizes, filename)
+drawing(gv::GraphViz; filename=nothing) = LuxorGraphPlot.show_graph(gv.graph, gv.locs; edge_colors=gv.edge_colors, vertex_colors=gv.vertex_colors, texts=gv.vertex_labels, vertex_sizes=gv.vertex_sizes, filename)
 function Base.show(io::IO, ::MIME"text/html", gv::GraphViz)
     show(io, "text/html", drawing(gv))
 end

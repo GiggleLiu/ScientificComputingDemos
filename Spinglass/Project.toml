@@ -6,10 +6,13 @@ version = "1.0.0-DEV"
 [deps]
 DelimitedFiles = "8bb1440f-4735-579b-a4ab-409b98df4dab"
 GenericTensorNetworks = "3521c873-ad32-4bb4-b63d-f4f178f42b49"
+Graphs = "86223c79-3864-5bf0-83f7-82e725a168b6"
+Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 
 [compat]
 DelimitedFiles = "1"
 GenericTensorNetworks = "2"
+Graphs = "1"
 julia = "1"
 
 [extras]
