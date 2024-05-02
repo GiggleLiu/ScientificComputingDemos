@@ -17,7 +17,6 @@ export fft!, ifft!, fast_polymul
 # `include` other source files into this module
 include("back_substitution.jl")
 include("lu_factorization.jl")
-include("elementaryeliminationmatrix.jl")
 include("lu_factorization_partialpivoting.jl")
 include("householder.jl")
 include("qr_factorization.jl")
