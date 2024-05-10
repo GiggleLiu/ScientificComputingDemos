@@ -56,7 +56,7 @@ function householder_qr!(Q::AbstractMatrix{T}, a::AbstractMatrix{T}) where T
         # update Q matrix
         right_mul!(Q, H')
         # recurse
-        householder_qr!(view(Q, 1:m, 2:m), view(a, 2:m, 2:n))
+        householder_qr!(view(Q, :, 2:m), view(a, 2:m, 2:n))
     end
     return Q, a
 end

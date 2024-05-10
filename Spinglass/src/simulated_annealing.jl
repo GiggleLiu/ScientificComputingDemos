@@ -55,7 +55,7 @@ Returns (minimum cost, optimal configuration).
 function anneal_singlerun!(config, prob, tempscales::Vector{Float64}, num_update_each_temp::Int)
     cost = energy(config, prob)
     
-    opt_config = config
+    opt_config = deepcopy(config)
     opt_cost = cost
     for beta = 1 ./ tempscales
         @simd for _ = 1:num_update_each_temp  # single instriuction multiple data, see julia performance tips.
@@ -65,7 +65,7 @@ function anneal_singlerun!(config, prob, tempscales::Vector{Float64}, num_update
                 cost += ΔE
                 if cost < opt_cost
                     opt_cost = cost
-                    opt_config = config
+                    opt_config = deepcopy(config)
                 end
             end
         end

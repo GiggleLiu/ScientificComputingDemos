@@ -1,38 +1,38 @@
 using SimpleLinearAlgebra
-using UnicodePlots
-
-@info "Running example: fast fourier transformation (FFT)"
-@info "The DFT matrix of size 6 x 6 is:"
-display(dft_matrix(6))
-
-y = Complex.(exp.(-abs2.(((1:256) .- 128) ./ 3)))
-@info """Let y be a gaussian function:"""
-display(lineplot(abs.(y), title="y = exp(-|n-128|^2/10)", xlabel="n", ylabel="y[n]", color=:red))
-
-fft!(y)
-@info """After applying the FFT to y, we get:"""
-display(lineplot(abs.(y), title="Y = FFT(y)", xlabel="k", ylabel="Y[k]", color=:blue))
-
-fft!(y)
-@info """After applying the FFT to y, we get:"""
-display(lineplot(abs.(y), title="Y = FFT(y)", xlabel="k", ylabel="Y[k]", color=:blue))
-
-y = Complex.(exp.(-abs2.(((1:256) .- 128) ./ 50)))
-@info """Let y be a (broader) gaussian function:"""
-display(lineplot(abs.(y), title="y = exp(-|n-128|^2/10)", xlabel="n", ylabel="y[n]", color=:red))
-
-fft!(y)
-@info """After applying the FFT to y, we get:"""
-display(lineplot(abs.(y), title="Y = FFT(y)", xlabel="k", ylabel="Y[k]", color=:blue))
+using LinearAlgebra
+# modified gram schmidt is more stable than classical gram schmidt
+n = 100
+A = randn(n, n)
+@info "Running Gram-Schmidt orthogonalization for a random matrix of size ($n x $n)"
+Q1, R1 = classical_gram_schmidt(A)
+Q2, R2 = modified_gram_schmidt!(copy(A))
+@info "Error in the classical Gram-Schmidt orthogonalization: $(norm(Q1' * Q1 - I))"
+@info "Error in the modified Gram-Schmidt orthogonalization: $(norm(Q2' * Q2 - I))"
 
 
-p, q = [1, 2, 3], [4, 5, 6]
-@info """Multiplying two polynomials using FFT:
-- p(x) = $(join(["$(p[i])x^$i" for i=1:length(p)], " + "))
-- q(x) = $(join(["$(q[i])x^$i" for i=1:length(q)], " + "))
-"""
-result = fast_polymul(p, q)
-@info """The result of the multiplication is:
-- p(x) * q(x) = $(join(["$(result[i])x^$i" for i=1:length(result)], " + "))"
-"""
+n = 100
+A = randn(n, n)
+@info "Running LU factorization for a random matrix of size ($n x $n)"
+L0, U0 = lufact!(copy(A))
+@info "Without pivoting, the error is: $(sum(abs, A - L0 * U0))"
+
+L, U, P = lufact_pivot!(copy(A))
+pmat = zeros(Int, n, n)
+setindex!.(Ref(pmat), 1, 1:n, P)
+@info "With pivoting, the error is: $(sum(abs, pmat * A - L * U))"
+
+n = 100
+A = randn(n, n)
+@info "Running QR factorization for a random matrix of size ($n x $n), with Givens rotations"
+R = copy(A)
+Q, R = givens_qr!(Matrix{Float64}(I, n, n), R)
+@info "The factorization error is: $(norm(Q * R - A)), normalization error is $(norm(Q' * Q - I))"
+
+@info "The Householder QR factorization"
+n = 100
+A = randn(n, n)
+R2 = copy(A)
+Q2 = Matrix{Float64}(I, n, n)
+householder_qr!(Q2, R2)
+@info "The factorization error is: $(norm(Q2 * R2 - A)), normalization error is $(norm(Q2' * Q2 - I))"
 

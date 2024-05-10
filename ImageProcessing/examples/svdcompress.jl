@@ -1,5 +1,5 @@
 using ImageProcessing, ImageProcessing.Images, ImageProcessing.LinearAlgebra
-using Makie, CairoMakie
+using CairoMakie
 
 fname = "amat.png"
 @info "Loading image: $fname"
@@ -37,9 +37,9 @@ Gray.(channelview(img)[2, :, :])
 Gray.(channelview(img)[3, :, :])
 
 red_svd = svd(red_channel)
-fig, = Makie.lines(red_svd.S)
+fig, = CairoMakie.lines(red_svd.S)
 fname = "red_svd_spectrum.png"
-Makie.save(fname, fig)
+CairoMakie.save(fname, fig)
 @info "Singular values of the red channel are stored in file: $fname"
 
 # We can decompose a given image into the three color channels red, green and blue.

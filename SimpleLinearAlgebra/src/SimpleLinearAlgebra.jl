@@ -12,7 +12,7 @@ export HouseholderMatrix, left_mul!, right_mul!, householder_e1, householder_qr!
 export qr_left_mul!, qr_right_mul!, givens_matrix, givens_qr!
 export classical_gram_schmidt, modified_gram_schmidt!
 export dft_matrix
-export fft!, ifft!, fast_polymul
+export fft!, ifft!
 
 # `include` other source files into this module
 include("back_substitution.jl")
