@@ -8,26 +8,27 @@ display(dft_matrix(6))
 x = randn(ComplexF64, 6)
 @assert dft_matrix(6) * x ≈ fft(x)
 
-y = Complex.(exp.(-abs2.(((1:256) .- 128) ./ 3)))
-@info """Let y be a gaussian function:"""
-display(lineplot(abs.(y), title="y = exp(-|n-128|^2/10)", xlabel="n", ylabel="y[n]", color=:red))
+σ = 3
+y = Complex.(exp.(-abs2.(((1:256) .- 128) ./ σ)))
+@info """Let y be a gaussian function (σ = $σ):"""
+display(lineplot(abs.(y), title="y = exp(-((n-128)/$σ)^2)", xlabel="n", ylabel="y[n]", color=:red))
 
 Y = fft(y)
 @info """After applying the FFT to y, we get:"""
 display(lineplot(abs.(Y), title="Y = FFT(y)", xlabel="k", ylabel="Y[k]", color=:blue))
 
-y2 = fft(Y)
+y2 = ifft(Y)
 @info """After applying the IFFT to Y, we get:"""
-display(lineplot(abs.(y2), title="y = IFFT(Y)", xlabel="n", ylabel="y[k]", color=:blue))
+display(lineplot(abs.(y2), title="y = IFFT(Y)", xlabel="n", ylabel="y[k]", color=:red))
 
-y = Complex.(exp.(-abs2.(((1:256) .- 128) ./ 50)))
+σ = 50
+y = Complex.(exp.(-abs2.(((1:256) .- 128) ./ σ)))
 @info """Let y be a (broader) gaussian function:"""
-display(lineplot(abs.(y), title="y = exp(-|n-128|^2/10)", xlabel="n", ylabel="y[n]", color=:red))
+display(lineplot(abs.(y), title="y = exp(-((n-128)/$σ)^2)", xlabel="n", ylabel="y[n]", color=:red))
 
 Y = fft(y)
 @info """After applying the FFT to y, we get:"""
 display(lineplot(abs.(Y), title="Y = FFT(y)", xlabel="k", ylabel="Y[k]", color=:blue))
-
 
 p, q = [1, 2, 3], [4, 5, 6]
 @info """Multiplying two polynomials using FFT:
