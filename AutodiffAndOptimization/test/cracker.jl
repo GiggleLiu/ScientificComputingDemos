@@ -7,7 +7,7 @@ using AutodiffAndOptimization.Cracker.ChainRules: rrule, unthunk
     Z = A + B * reshape(C, 2, 2)
     
     ret = abs2(sum(Z))
-    Cracker.backpropagate!(ret, 1.0)
+    Cracker.backpropagate!(ret, fill!(similar(ret), 1.0))
     
     uA,uB,uC = untrack.((A, B, C))
     T1, pb1 = rrule(reshape, uC, 2, 2)
@@ -26,4 +26,21 @@ using AutodiffAndOptimization.Cracker.ChainRules: rrule, unthunk
     @test unthunk(duA) ≈ A.record.grad
     @test unthunk(duB) ≈ B.record.grad
     @test unthunk(duC) ≈ C.record.grad
+end
+
+@testset "gradient 1" begin
+    a = rand(2, 2)
+    @test Cracker.gradient(sum, (a,))[1] == ones(2, 2)
+end
+    
+@testset "gradient 2" begin
+    A, B, C = rand(Float64, 2, 2), rand(Float64, 2, 2), rand(Float64, 4)
+    function loss(A, B, C)
+        Z = A + B * reshape(C, 2, 2)
+        return abs2(sum(Z))
+    end
+    grads = Cracker.gradient(loss, (A, B, C))
+    @test grads[1] ≈ ones(2, 2)
+    @test grads[2] ≈ ones(2, 2)
+    @test grads[3] ≈ ones(2, 2)
 end

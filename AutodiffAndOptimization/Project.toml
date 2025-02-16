@@ -3,7 +3,13 @@ uuid = "105ffcd2-060d-495b-a985-7b4e117e6040"
 authors = ["GiggleLiu"]
 version = "1.0.0-DEV"
 
+[deps]
+ChainRules = "082447d4-558c-5d27-93f4-14fc19e9eca2"
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+
 [compat]
+ChainRules = "1.72.2"
+LinearAlgebra = "1.11.0"
 julia = "1"
 
 [extras]
