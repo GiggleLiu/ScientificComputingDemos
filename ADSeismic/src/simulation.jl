@@ -1,4 +1,16 @@
-export AcousticPropagatorParams, solve
+struct SeismicState{MT}
+    upre::MT
+    u::MT
+    φ::MT
+    ψ::MT
+    step::Base.RefValue{Int}
+end
+## solving gradient
+function SeismicState(::Type{T}, nx::Int, ny::Int) where T
+    SeismicState([zeros(T, nx+2, ny+2) for i=1:4]..., Ref(0))
+end
+Base.zero(x::SeismicState) = SeismicState(zero(x.upre), zero(x.u), zero(x.φ), zero(x.ψ), Ref(0))
+Base.copy(x::SeismicState) = SeismicState(copy(x.upre), copy(x.u), copy(x.φ), copy(x.ψ), Ref(x.step[]))
 
 struct AcousticPropagatorParams{DIM, AT<:AbstractArray{Float64,DIM}}
     # number of grids along x,y axis and time steps

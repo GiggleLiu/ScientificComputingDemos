@@ -105,6 +105,7 @@ function treeverse!(f, gf, state::Dict{Int,T}, g, δ, τ, β, σ, ϕ, logger, f_
     end
     return g
 end
+getf(f, i) = f
 
 @inline function store_state!(state::Dict, i::Int, x)
     state[i] = x
@@ -116,7 +117,7 @@ end
 
 function treeverse_step(s, param, src, srcv, c)
     unext, φ, ψ = zero(s.u), copy(s.φ), copy(s.ψ)
-    ReversibleSeismic.one_step!(param, unext, s.u, s.upre, φ, ψ, param.Σx, param.Σy, c)
+    one_step!(param, unext, s.u, s.upre, φ, ψ, param.Σx, param.Σy, c)
     s2 = SeismicState(s.u, unext, φ, ψ, Ref(s.step[]+1))
     s2.u[src...] += srcv[s2.step[]]*param.DELTAT^2
     return s2
