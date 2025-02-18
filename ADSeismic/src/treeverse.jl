@@ -70,9 +70,21 @@ function treeverse(f, gf, s::T; δ, N, τ=binomial_fit(N,δ), f_inplace=false, l
     return g
 end
 
-function treeverse!(f, gf, state::Dict{Int,T}, g, δ, τ, β, σ, ϕ, logger, f_inplace) where T
+function treeverse!(
+            f,          # the step function
+            gf,         # the single step gradient function
+            state::Dict{Int,T},    # the state dictionary, used to cache the states
+            g,          # the gradient of the end state
+            δ::Int,     # the number of checkpoints
+            τ::Int,     # the number of sweeps
+            β::Int,     # the end of the previous sweep
+            σ::Int,     # the current middle point
+            ϕ::Int,     # the end of the current sweep
+            logger::TreeverseLog,  # the logger, used to record the actions
+            f_inplace::Bool        # whether f changes its input
+        ) where T
     logger.depth[] += 1
-    # cache sσ
+    # cache state[σ]
     if σ > β
         δ -= 1
         s = state[β]
@@ -88,7 +100,7 @@ function treeverse!(f, gf, state::Dict{Int,T}, g, δ, τ, β, σ, ϕ, logger, f_
         error("treeverse fails! σ < β")
     end
 
-    κ = mid(δ, τ, σ, ϕ)
+    κ = mid(δ, τ, σ, ϕ)  # compute a partition point between σ and ϕ
     while τ>0 && κ < ϕ
         g = treeverse!(f, gf, state, g, δ, τ, σ, κ, ϕ, logger, f_inplace)
         τ -= 1
@@ -98,13 +110,15 @@ function treeverse!(f, gf, state::Dict{Int,T}, g, δ, τ, β, σ, ϕ, logger, f_
 
     g = getf(gf, σ)(state[σ], g)
     push!(logger, :grad, τ, δ, σ)
-    if σ>β
+    if σ > β
         # remove state[σ]
         delete_state!(state, σ)
         push!(logger, :fetch, τ, δ, σ)
     end
     return g
 end
+
+# interface for obtaining the function at the i-th step
 getf(f, i) = f
 
 @inline function store_state!(state::Dict, i::Int, x)
