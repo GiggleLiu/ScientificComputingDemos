@@ -25,7 +25,8 @@ using ADSeismic, Test, ForwardDiff, Enzyme
     step_func(x) = rk4_step(lorentz, 0.0, x, nothing; Δt=3e-3)
     function back(x, f_and_g::Nothing)
         # set the gradient of the last state to [1, 0, 0], i.e. differentiate with respect to x
-        return back(x, (step_func(x), [1, 0, 0.0]))
+        y = step_func(x)
+        return back(x, (y, y, [1, 0, 0.0]))
     end
     function back(x, f_and_g::Tuple)
         function forward(x, y)
@@ -33,20 +34,19 @@ using ADSeismic, Test, ForwardDiff, Enzyme
             return nothing
         end
         x̅ = zero(x)
-        y = step_func(x)
-        result, y̅ = f_and_g
+        result, y, y̅ = f_and_g
         Enzyme.autodiff(Reverse, Const(forward), Duplicated(x, x̅), Duplicated(y, y̅))
-        return (result, x̅)
+        return (result, x, x̅)
     end
 
-    result, g = back(randn(3), randn(3))
+    result, g = back(randn(3), (randn(3), randn(3), randn(3)))
     @test g isa Vector{Float64}
 
     @testset "treeverse gradient" begin
         x0 = [1.0, 0.0, 0.0]
         for N in [20, 120, 126]
             g_fd = ForwardDiff.gradient(x->rk4(lorentz, x, nothing; t0=0.0, Δt=3e-3, Nt=N)[1], x0)
-            result_tv, g_tv = treeverse(step_func, back, x0; δ=4, N=N)
+            result_tv, _, g_tv = treeverse(step_func, back, x0; δ=4, N=N)
             @test result_tv ≈ rk4(lorentz, x0, nothing; t0=0.0, Δt=3e-3, Nt=N)
             @test g_fd ≈ g_tv
         end
