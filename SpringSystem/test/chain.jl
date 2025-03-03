@@ -1,15 +1,15 @@
-using Test, PhysicsSimulation, PhysicsSimulation.Graphs
+using Test, SpringSystem
 
 @testset "chain dynamics" begin
     c = spring_chain(randn(10) .* 0.1, 1.0, 1.0; periodic=true)
-    @test c isa SpringSystem
+    @test c isa SpringModel
 end
 
 @testset "leapfrog" begin
     c = spring_chain(randn(10) .* 0.1, 1.0, 1.0; periodic=true)
-    cached = LeapFrogSystem(c)
-    newcache = step!(cached, 0.1)
-    @test newcache isa LeapFrogSystem
+    cached = SpringSystem.LeapFrogSystem(c)
+    newcache = SpringSystem.step!(cached, 0.1)
+    @test newcache isa SpringSystem.LeapFrogSystem
 end
 
 @testset "eigenmodes" begin
@@ -17,8 +17,8 @@ end
     C = 4.0  # stiffness
     M = 2.0  # mass
     c = spring_chain(randn(L) * 0.1, C, M; periodic=true)
-    sys = eigensystem(c)
-    modes = eigenmodes(sys)
+    sys = SpringSystem.eigensystem(c)
+    modes = SpringSystem.eigenmodes(sys)
 
     ks_expected = [n * 2π / L for n in 0:L-1]
     omega_expected = sqrt(4C / M) .* sin.(abs.(ks_expected) ./ 2)
@@ -29,9 +29,9 @@ end
     # method 1: solve with leapfrog method
     idx = 2
     c = spring_chain(waveat(modes, idx, 0.0), C, M; periodic=true)
-    lf = LeapFrogSystem(c)
+    lf = SpringSystem.LeapFrogSystem(c)
     for i=1:500
-        step!(lf, 0.01)
+        SpringSystem.step!(lf, 0.01)
     end
     ut_lf = first.(coordinate(c))
 
@@ -44,7 +44,7 @@ end
     c = spring_chain(wave, C, M; periodic=true)
     lf = LeapFrogSystem(c)
     for i=1:500
-        step!(lf, 0.01)
+        SpringSystem.step!(lf, 0.01)
     end
     ut_lf = first.(coordinate(c))
     ut_expected = (0:L-1) .+ waveat(modes, wave, [t])[]

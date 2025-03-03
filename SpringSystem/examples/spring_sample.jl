@@ -20,13 +20,13 @@ L = 5
 u0 = second_mode .* cos.(phi0)
 @info "Define the length of the chain, and the initial condition."
 
-using PhysicsSimulation
+using SpringSystem
 dt, nsteps = 0.1, round(10 * 2π/second_omega)
 spring = spring_chain(u0, C, M; periodic=false)
 states = leapfrog_simulation(spring; dt, nsteps)
 
 using Makie, CairoMakie
-p2(x::PhysicsSimulation.Point{1}) = Point2f(x.data[1], 0.0)
+p2(x::SpringSystem.Point{1}) = Point2f(x.data[1], 0.0)
 getcoos(b::LeapFrogSystem) = p2.(coordinate(b.sys))
 locs = getcoos.(states)
 locs2 = [Point2f.(u(t), -0.1) for t in dt * (0:nsteps)]
@@ -48,6 +48,3 @@ record(fig, joinpath(@__DIR__, "springs-demo.gif"), 2:length(states); framerate 
     coos2[] = locs2[i]
 end
 @info "The gif is finished, and it is recorded in examples/spring-demo.gif."
-
-
-
