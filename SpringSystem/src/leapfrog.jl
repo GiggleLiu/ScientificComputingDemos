@@ -1,3 +1,12 @@
+"""
+    LeapFrogSystem{T, D, SYS<:AbstractHamiltonianSystem{D}}
+
+The leapfrog system is a symplectic integrator for the Hamiltonian system.
+
+### Fields
+- `sys` is the Hamiltonian system
+- `a` is the acceleration of the system
+"""
 struct LeapFrogSystem{T, D, SYS<:AbstractHamiltonianSystem{D}}
     sys::SYS
     a::Vector{Point{D, T}}
@@ -10,6 +19,7 @@ function LeapFrogSystem(bds::AbstractHamiltonianSystem)
     LeapFrogSystem(bds, zero(coordinate(bds)))
 end
 
+# evolve the Hamiltonian system with the leapfrog method for a time step dt
 function step!(bdsc::LeapFrogSystem{T}, dt) where T
     sys, a = bdsc.sys, bdsc.a
     @inbounds for j = 1:length(sys)
@@ -26,6 +36,7 @@ function step!(bdsc::LeapFrogSystem{T}, dt) where T
     return bdsc
 end
 
+# evolve the Hamiltonian system with the leapfrog method for nsteps * dt time, and return the states
 function leapfrog_simulation(sys::AbstractHamiltonianSystem; dt, nsteps)
     cached_system = LeapFrogSystem(deepcopy(sys))
     states = [deepcopy(cached_system)]

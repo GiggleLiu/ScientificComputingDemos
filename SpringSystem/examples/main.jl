@@ -2,6 +2,7 @@ using CairoMakie
 using CairoMakie: RGBA
 using SpringSystem
 using SpringSystem: eigenmodes, eigensystem, nv
+using LinearAlgebra
 
 function run_spring_chain(; C = 3.0, M = 1.0, L = 20, u0 = 0.2 * randn(L))
     # setup the spring chain model
@@ -27,12 +28,12 @@ function run_spring_chain(; C = 3.0, M = 1.0, L = 20, u0 = 0.2 * randn(L))
     return simulated, exact
 end
 
-# helper functions to visualize the system
-p2(x::SpringSystem.Point{1}) = Point2f(x.data[1], 0.0)
-getcoos(b::LeapFrogSystem) = p2.(coordinate(b.sys))
-getendpoints(b::LeapFrogSystem) = p2.(b.a)
-
 function visualize_simulation(simulated, exact)
+    # helper functions to visualize the system
+    p2(x::SpringSystem.Point{1}) = Point2f(x.data[1], 0.0)
+    getcoos(b::LeapFrogSystem) = p2.(coordinate(b.sys))
+    getendpoints(b::LeapFrogSystem) = p2.(b.a)
+
     L = nv(simulated[1].sys.topology)
     locs = getcoos.(simulated)
     locs2 = [map(x->Point2f(x, -0.05), (0:L-1) .+ x) for x in exact]
@@ -63,7 +64,7 @@ function visualize_eigenmodes(c::SpringModel)
     modes = eigenmodes(sys)
     L = nv(c.topology)
 
-    # wave function
+    # compute the locations of the wave modes using the eigenmodes
     locations(idx::Int, t) = Point2f.((0:L-1) .+ waveat(modes, idx, t), 0.0)
 
     fig = Figure()
