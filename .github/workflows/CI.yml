@@ -31,6 +31,7 @@ jobs:
           - SimpleTensorNetwork
           - GraphClustering
           - IsingModel
+          - SpringSystem
     steps:
       - uses: actions/checkout@v4
       - uses: julia-actions/setup-julia@v2
