@@ -20,7 +20,7 @@ Clone the repository to your local machine and install the required packages (in
 
 ```bash
 $ git clone https://github.com/GiggleLiu/ScientificComputingDemos.git
-$ cd ScientificCompuingDemos
+$ cd ScientificComputingDemos
 $ make init-Spinglass   # initialize the environment in Spinglass and Spinglass/examples
 $ make example-Spinglass   # run the script Spinglass/examples/main.jl
 ```

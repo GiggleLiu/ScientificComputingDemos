@@ -13,7 +13,7 @@ Clone the repository to your local machine and install the required packages (in
 
 ```bash
 $ git clone https://github.com/GiggleLiu/ScientificComputingDemos.git
-$ cd ScientificCompuingDemos
+$ cd ScientificComputingDemos
 $ make init-ImageProcessing   # initialize the environment in ImageProcessing and ImageProcessing/examples
 $ make example-ImageProcessing   # run the script ImageProcessing/examples/main.jl
 ```

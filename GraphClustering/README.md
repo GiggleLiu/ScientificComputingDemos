@@ -12,7 +12,7 @@ Clone the repository to your local machine and install the required packages (in
 
 ```bash
 $ git clone https://github.com/GiggleLiu/ScientificComputingDemos.git
-$ cd ScientificCompuingDemos
+$ cd ScientificComputingDemos
 $ make init-GraphClustering   # initialize the environment in Spinglass and GraphClustering/examples
 $ make example-GraphClustering   # run the script GraphClustering/examples/main.jl
 ```

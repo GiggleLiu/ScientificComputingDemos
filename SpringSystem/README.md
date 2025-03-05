@@ -11,7 +11,7 @@ Clone the repository to your local machine and install the required packages (in
 
 ```bash
 $ git clone https://github.com/GiggleLiu/ScientificComputingDemos.git
-$ cd ScientificCompuingDemos
+$ cd ScientificComputingDemos
 $ make init-SpringSystem     # initialize the environment in SpringSystem and SpringSystem/examples
 $ make example-SpringSystem  # run the script SpringSystem/examples/main.jl
 ```

@@ -13,7 +13,7 @@ Clone the repository to your local machine and install the required packages (in
 
 ```bash
 $ git clone https://github.com/GiggleLiu/ScientificComputingDemos.git
-$ cd ScientificCompuingDemos
+$ cd ScientificComputingDemos
 $ make init-PhysicsSimulation   # initialize the environment in PhysicsSimulation and PhysicsSimulation/examples
 $ make example-PhysicsSimulation   # run the script PhysicsSimulation/examples/main.jl
 ```
