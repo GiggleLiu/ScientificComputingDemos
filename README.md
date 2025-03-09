@@ -1,4 +1,4 @@
-(Work in progress) Demos projects in the book: [Scientific Computing for Physicists](https://book.jinguo-group.science/)
+(Work in progress) Demos projects in the book: [Scientific Computing for Physicists](https://scfp.jinguo-group.science/)
 
 [![CI](https://github.com/GiggleLiu/ScientificComputingDemos/actions/workflows/CI.yml/badge.svg)](https://github.com/GiggleLiu/ScientificComputingDemos/actions/workflows/CI.yml)
 

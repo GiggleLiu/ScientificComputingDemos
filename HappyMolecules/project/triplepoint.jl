@@ -22,7 +22,7 @@ let
     filename = tempname() * ".mp4"
     fig = Figure(; resolution=(800, 800))
     ax = Axis3(fig[1,1]; aspect=:data)
-    limits = GLMakie.FRect3D((0, 0, 0),(box.dimensions...,))
+    limits = CairoMakie.FRect3D((0, 0, 0),(box.dimensions...,))
     limits!(ax, limits)
 	points = Observable([Point3f(x...,) for x in md.x])
 	directions = Observable([Point3f(x/100...,) for x in md.field])

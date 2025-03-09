@@ -1,12 +1,12 @@
 module LatticeBoltzmannCUDAExt
-using CUDA
+using CUDA: @kernel, get_backend, @index
 using LatticeBoltzmannModel: Cell, AbstractLBConfig, directions, flip_direction_index, density, LatticeBoltzmann
 using LatticeBoltzmannModel
 
 function LatticeBoltzmannModel.stream!(lb::AbstractLBConfig{2, N}, newgrid::CuMatrix{D}, grid::CuMatrix{D}, barrier::CuMatrix{Bool}) where {N, T, D<:Cell{N, T}}
     ds = directions(lb)
-    function kernel(ctx, newgrid, grid, barrier, ds)
-        ci = CUDA.@cartesianidx newgrid
+    @kernel function kernel(newgrid, grid, barrier, ds)
+        ci = @index(Global, Cartesian)
         i, j = ci.I
         @inbounds newgrid[ci] = Cell(ntuple(N) do k
             ei = ds[k]
@@ -18,9 +18,9 @@ function LatticeBoltzmannModel.stream!(lb::AbstractLBConfig{2, N}, newgrid::CuMa
                 density(grid[i2, j2], k)
             end
         end)
-        return nothing
     end
-    CUDA.gpu_call(kernel, newgrid, grid, barrier, ds)
+    kernel(get_backend(newgrid))(newgrid, grid, barrier, ds; ndrange=size(newgrid))
+    return newgrid
 end
 
 function CUDA.cu(lb::LatticeBoltzmann{D, N}) where {D, N}
