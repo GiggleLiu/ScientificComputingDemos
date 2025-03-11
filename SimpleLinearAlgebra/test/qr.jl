@@ -15,6 +15,12 @@ end
 @testset "householder property" begin
     v = randn(3)
     H = HouseholderMatrix(v)
+    A = randn(3, 3)
+    @test H * A ≈ Matrix(H) * A
+    @test A * H ≈ A * Matrix(H)
+    CA = copy(A)
+    mul!(CA, H, CA)
+    @test CA ≈ H * A
     # symmetric
     @test H' ≈ H
     # reflexive

@@ -285,26 +285,21 @@ end
 Base.inv(A::HouseholderMatrix) = A
 Base.adjoint(A::HouseholderMatrix) = A
 
-"""
-    left_mul!(B, A::HouseholderMatrix)
-
-Apply a Householder reflection from the left: A*B.
-Modifies B in-place.
-"""
-function left_mul!(B, A::HouseholderMatrix)
-    B .-= (A.β .* A.v) * (A.v' * B)
-    return B
+# Apply a Householder reflection from the left: A*B. Modifies B in-place.
+function LinearAlgebra.mul!(Y::AbstractMatrix, A::HouseholderMatrix, B::AbstractMatrix)
+    Y .= B .- (A.β .* A.v) .* (A.v' * B)
+    return Y
 end
 
-"""
-    right_mul!(A, B::HouseholderMatrix)
+# Apply a Householder reflection from the right: A*B. Modifies Y in-place.
+function LinearAlgebra.mul!(Y::AbstractMatrix, A::AbstractMatrix, B::HouseholderMatrix)
+    Y .= A .- (A * (B.β .* B.v)) .* B.v'
+    return Y
+end
 
-Apply a Householder reflection from the right: A*B.
-Modifies A in-place.
-"""
-function right_mul!(A, B::HouseholderMatrix)
-    A .-= (A * (B.β .* B.v)) * B.v'
-    return A
+function LinearAlgebra.mul!(Y::AbstractMatrix, A::HouseholderMatrix, B::HouseholderMatrix)
+    Y .= A .- (A * (B.β .* B.v)) .* B.v'
+    return Y
 end
 
 """
@@ -345,10 +340,10 @@ function householder_qr!(Q::AbstractMatrix{T}, A::AbstractMatrix{T}) where T
     else
         # Apply Householder matrix to zero out elements below the diagonal
         H = householder_e1(view(A, :, 1))
-        left_mul!(A, H)
+        mul!(A, H, A)
         
         # Update Q matrix
-        right_mul!(Q, H')
+        mul!(Q, Q, H')
         
         # Recursively process the submatrix
         householder_qr!(view(Q, :, 2:m), view(A, 2:m, 2:n))
