@@ -1,6 +1,10 @@
 using SimpleLinearAlgebra
 using Test
 
+@testset "strassen.jl" begin
+    include("strassen.jl")
+end
+
 @testset "qr.jl" begin
     include("qr.jl")
 end

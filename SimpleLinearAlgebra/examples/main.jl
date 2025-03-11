@@ -12,7 +12,7 @@ function run_gram_schmidt_example(n=100)
     classical_error = norm(Q1'Q1 - I)
     
     # Modified Gram-Schmidt
-    Q2, R2 = modified_gram_schmidt!(copy(A))
+    Q2, R2 = modified_gram_schmidt(A)
     modified_error = norm(Q2'Q2 - I)
     
     # Built-in QR for comparison
