@@ -33,3 +33,4 @@ Manifest.toml
 /*.png
 *.json
 *.mp4
+GraphClustering/examples/*.png

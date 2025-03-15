@@ -69,10 +69,10 @@ function spectral_clustering(points::AbstractVector, k; sigma)
     adj = expdist.(reshape(points, 1, :), points)
     D = Diagonal(inv.(sqrt.(dropdims(sum(adj; dims=1); dims=1))))
     normalized_adj = D * adj * D
-    vals, _vecs = eigsolve(-normalized_adj, randn(length(points)), k, :SR; ishermitian=true)
+    vals, _vecs = eigsolve(-normalized_adj, randn(length(points)), k, :LM; ishermitian=true)
     vecs = hcat(_vecs[1:k]...)
     # normalize along the row
     vecs ./= sqrt.(sum(abs2, vecs; dims=2))
-    return kmeans(vecs', 2)
+    return kmeans(vecs', k)
 end
 onehot(k, i) = Float64[i == j for j in 1:k]
