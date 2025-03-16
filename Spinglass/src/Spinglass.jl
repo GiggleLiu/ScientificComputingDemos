@@ -11,5 +11,6 @@ export set_input!, compose_multiplier
 include("simulated_annealing.jl")
 include("mis_sa.jl")
 include("logic_gates.jl")
+include("dynamics.jl")
 
 end
