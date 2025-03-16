@@ -1,2 +1,10 @@
 [deps]
 GraphClustering = "8ff72e77-ac1c-440e-8064-6af5ea7625d8"
+Graphs = "86223c79-3864-5bf0-83f7-82e725a168b6"
+LuxorGraphPlot = "1f49bdf2-22a7-4bc4-978b-948dc219fbbc"
+
+[compat]
+GraphClustering = "1"
+Graphs = "1"
+LuxorGraphPlot = "0.5"
+julia = "1"

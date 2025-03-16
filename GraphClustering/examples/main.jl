@@ -1,4 +1,4 @@
-using GraphClustering, GraphClustering.Graphs, GraphClustering.LuxorGraphPlot
+using GraphClustering, Graphs, LuxorGraphPlot
 
 # ===== Basic Graph Operations =====
 println("\n=== Basic Graph Operations ===")

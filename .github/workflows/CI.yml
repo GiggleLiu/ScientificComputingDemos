@@ -28,6 +28,7 @@ jobs:
           - CompressedSensing
           - HappyMolecules
           - SimpleLinearAlgebra
+          - SimpleKrylov
           - SimpleTensorNetwork
           - GraphClustering
           - IsingModel

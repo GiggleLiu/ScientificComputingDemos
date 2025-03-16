@@ -1,4 +1,4 @@
-using Test, GraphClustering.SimpleSparseArrays
+using Test, SimpleKrylov.SimpleSparseArrays
 
 @testset "coo2csc" begin
     stiffmatrix = COOMatrix(3, 3, [1, 2, 1, 2, 3, 2, 3], [1, 1, 2, 2, 2, 3, 3], [-1.0, 1, 1, -2, 1, 1, -1])

@@ -2,10 +2,6 @@
 
 This package implements the spectral clustering algorithm[^Ng2001] in Julia.
 
-## Contents
-- Compressed sparse column (CSC) matrix
-- Graph Clustering algorithm
-
 ## To run
 
 Clone the repository to your local machine and install the required packages (in a terminal):
