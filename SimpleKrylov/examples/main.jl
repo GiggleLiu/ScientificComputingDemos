@@ -35,7 +35,7 @@ function run_lanczos_example(; n = 1000, degree = 3, maxiter = 200, abstol = 1e-
     return T, Q, lanczos_eigenvalues, exact_eigenvalues
 end
 
-function visualize_eigenvalues(lanczos_eigenvalues, exact_eigenvalues; k = 10)
+function visualize_eigenvalues(lanczos_eigenvalues, exact_eigenvalues; k = 20)
     # Visualize the k smallest eigenvalues
     fig = Figure()
     ax = Axis(fig[1, 1], 

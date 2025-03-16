@@ -34,3 +34,4 @@ Manifest.toml
 *.json
 *.mp4
 GraphClustering/examples/*.png
+SimpleKrylov/examples/*.png
