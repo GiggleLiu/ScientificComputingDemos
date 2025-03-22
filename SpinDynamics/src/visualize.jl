@@ -18,7 +18,7 @@ function visualize_spins(locs::Vector, spins::Vector{SVector{3, T}}) where T
     return fig
 end
 
-function visualize_spins_animation(locs::Vector, history::Vector{Vector{SVector{3, T}}}; filename::String) where T
+function visualize_spins_animation(locs::Vector, history::Vector{Checkpoint{T}}; filename::String) where T
     fig = Figure(size=(800, 600))
     ax = Axis3(fig[1, 1], aspect=:data, 
                xlabel="x", ylabel="y", zlabel="z",
@@ -30,7 +30,7 @@ function visualize_spins_animation(locs::Vector, history::Vector{Vector{SVector{
     hidedecorations!(ax)
     
     # Create observables for the animation
-    current_spins = Observable(history[1])
+    current_spins = Observable(history[1].spins)
     
     # Create the arrows plot with observables
     arrows!(ax, 
@@ -43,7 +43,7 @@ function visualize_spins_animation(locs::Vector, history::Vector{Vector{SVector{
     # Create animation
     framerate = 30
     return record(fig, filename, 1:length(history); framerate=framerate) do frame_idx
-        current_spins[] = history[frame_idx]
+        current_spins[] = history[frame_idx].spins
         setproperty!(ax, :title, "Spin Visualization - Frame $frame_idx")
     end
 end

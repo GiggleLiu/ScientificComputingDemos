@@ -15,9 +15,10 @@ end
 function example_system(n::Int, T::Float64)
     topology = cylinder(n, n)
     Jmax, Hmax = 2.0, 2.0
-    Jt = TimeDependent(ones(ne(topology)), (J, t) -> (J .= Jmax * rand(Bool, ne(topology)) * sin(π/2 * t / T)))
+    J0 = Jmax * SVector.(0.0, 0.0, rand([-1.0, 1.0], ne(topology)))  # random sign, ZZ coupling
+    Jt = TimeDependent(copy(J0), (J, t) -> (J .= J0 .* sin(π/2 * t / T)))
     ht = TimeDependent(fill(SVector(-5.0, 0.0, 0.0), nv(topology)), (h, t) -> (h .= Ref(SVector(-Hmax * (cos(π/2 * t / T)), 0.0, 0.0))))
-    sys = ClassicalSpinSystem(topology, Jt, ht)
+    sys = ClassicalSpinSystem(topology, Jt; bias=ht, damping=0.0)
     return sys
 end
 
@@ -65,7 +66,7 @@ function plot_pulses(T)
     J_values = first.(SpinDynamics.value!.(Ref(Jt), times))
     H_values = first.(SpinDynamics.value!.(Ref(ht), times))
         
-    lines!(ax, times, J_values, linewidth=2, color=:blue, label="J(t)")
+    lines!(ax, times, getindex.(J_values, 3), linewidth=2, color=:blue, label="Jz(t)")
     lines!(ax, times, -getindex.(H_values, 1), linewidth=2, color=:red, label="H_x(t)")
     lines!(ax, times, -getindex.(H_values, 2), linewidth=2, color=:green, label="H_y(t)")
     lines!(ax, times, -getindex.(H_values, 3), linewidth=2, color=:purple, label="H_z(t)")
@@ -79,30 +80,35 @@ plot_zz(200.0, 0.01)
 
 function zz_scale(Tlist; dt=0.001, nrepeat=10)
     zzlist = []
+    englist = []
     for T in Tlist
         sys = example_system(6, T)
-        zz = sum(1:nrepeat) do _
-            spins = [SVector(1.0, 0.0, 0.01*randn()) |> normalize for _ in 1:nv(sys.topology)]
+        zz = 0.0
+        eng = 0.0
+        for _ in 1:nrepeat
+            spins = [SVector(1.0, 0.0, 0.05*randn()) |> normalize for _ in 1:nv(sys.topology)]
             state, _ = simulate!(spins, sys; nsteps=ceil(Int, T/dt), dt=dt, algorithm=TrotterSuzuki{2}(sys.topology))
-            measure_zz(state)
+            zz += measure_zz(state)
+            eng += energy(SpinDynamics.instantiate(sys, T), state)/nv(sys.topology)
         end
         push!(zzlist, zz/nrepeat)
+        push!(englist, eng/nrepeat)
     end
-    @show zzlist
     
     fig = Figure(size=(800, 600))
     ax = Axis(fig[1, 1], 
               xlabel="Time", 
               ylabel="ZZ Correlation",
               title="Spin-Spin Correlation Over Time",
-              yscale=log10,
               xscale=log10,
-              limits=((1e-1, 1e2), (1e-8, 1e-0)),
+            #   yscale=log10,
+            #   limits=((1e-1, 1e2), (1e-8, 1e-0)),
               )
     
     lines!(ax, Tlist, zzlist, linewidth=2, color=:blue, label="ZZ")
+    lines!(ax, Tlist, englist, linewidth=2, color=:red, label="Energy")
     axislegend(ax, position=:rb)
     return fig
 end
 
-zz_scale(exp.(-2:0.05:5), dt=0.01, nrepeat=10)
+zz_scale(exp.(-1:0.05:5), dt=0.1, nrepeat=20)

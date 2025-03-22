@@ -4,7 +4,7 @@ using Graphs
 
 @testset "Spin dynamics" begin
     topology = grid((3, 3))
-    sys = ClassicalSpinSystem(topology, ones(ne(topology)))
+    sys = ClassicalSpinSystem(topology, fill(SVector(1.0, 1.0, 1.0), ne(topology)))
     spins = [SVector(1.0, 0.0, 0.0) for _ in 1:nv(sys.topology)]
     state, history = simulate!(spins, sys; nsteps=100, dt=0.1, checkpoint_steps=10, algorithm=TrotterSuzuki{2}(topology))
     @test state ≈ [SVector(1.0, 0.0, 0.0) for _ in 1:nv(sys.topology)]
@@ -34,10 +34,10 @@ end
 end
 
 @testset "time dependent" begin
-    J = TimeDependent(zeros(ne(grid((3, 3)))), (J, t) -> (J .= 0.0))
+    J = TimeDependent(fill(SVector(0.0, 0.0, 0.0), ne(grid((3, 3)))), (J, t) -> (J .= Ref(SVector(0.0, 0.0, 0.0))))
     h = TimeDependent(fill(SVector(0.0, 0.0, 0.0), nv(grid((3, 3)))), (h, t) -> (h .= Ref(t * SVector(0.0, 0.0, 1.0))))
     topology = grid((3, 3))
-    sys = ClassicalSpinSystem(topology, J, h)
+    sys = ClassicalSpinSystem(topology, J; bias=h)
     spins = [SVector(0.0, 0.0, 1.0) for _ in 1:nv(sys.topology)]
     E0 = energy(SpinDynamics.instantiate(sys, 0.0), spins)
     @test E0 ≈ 0.0 atol=1e-6
@@ -47,7 +47,7 @@ end
 
 
     h = TimeDependent(fill(SVector(0.0, 0.0, 0.0), nv(grid((3, 3)))), (h, t) -> (h .= Ref(SVector(t * -1.0/10, 0.0, -1.0/10 * (10 - t)))))
-    sys = ClassicalSpinSystem(topology, J, h)
+    sys = ClassicalSpinSystem(topology, J; bias=h)
     spins = [SVector(0.0, 0.0, 1.0) for _ in 1:nv(sys.topology)]
     E0 = energy(SpinDynamics.instantiate(sys, 0.0), spins)
     E0b = energy(SpinDynamics.instantiate(sys, 10.0), spins)
@@ -56,4 +56,15 @@ end
     state, history = simulate!(spins, sys; nsteps=100, dt=0.1, checkpoint_steps=10, algorithm=TrotterSuzuki{2}(topology))
     @test energy(SpinDynamics.instantiate(sys, 10.0), state) ≈ -9.0 atol=1e-6
     @test energy(SpinDynamics.instantiate(sys, 0.0), state) ≈ 0.0 atol=1e-2
+end
+
+@testset "damping" begin
+    # dampling drives the system to the ground state
+    topology = grid((3, 3))
+    J = fill(SVector(1.0, 1.0, 1.0), ne(topology))
+    h = fill(SVector(0.0, 0.0, 0.0), nv(topology))
+    sys_damped = ClassicalSpinSystem(topology, J; bias=h, damping=2.0)
+    spins = [SVector(randn(), randn(), randn()) |> normalize for _ in 1:nv(sys_damped.topology)]
+    state, history = simulate!(spins, sys_damped; nsteps=100, dt=0.1, checkpoint_steps=10, algorithm=TrotterSuzuki{2}(topology))
+    @test energy(sys_damped, state) ≈ -12.0 atol=1e-3
 end

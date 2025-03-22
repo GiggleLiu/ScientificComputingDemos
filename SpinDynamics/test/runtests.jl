@@ -2,7 +2,7 @@ using SpinDynamics
 using Test
 
 @testset "Spin dynamics" begin
-    include("spindynamics.jl")
+    include("simulation.jl")
 end
 
 @testset "Visualize" begin

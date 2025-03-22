@@ -9,20 +9,20 @@ end
 value!(v::Vector, t) = v
 Base.length(td::TimeDependent) = length(td.value)
 
-struct ClassicalSpinSystem{T, CT<:Union{Vector{T}, TimeDependent{T}}, FT<:Union{Vector{SVector{3, T}}, TimeDependent{SVector{3, T}}}}
+struct ClassicalSpinSystem{T, CT<:Union{Vector{SVector{3, T}}, TimeDependent{SVector{3, T}}}, FT<:Union{Vector{SVector{3, T}}, TimeDependent{SVector{3, T}}}}
     topology::SimpleGraph{Int}
     coupling::CT
     bias::FT
     damping::T
-    function ClassicalSpinSystem(topology::SimpleGraph{Int}, coupling::CT, bias::FT=zeros(SVector{3, T}, nv(topology))) where {T, CT<:Union{Vector{T}, TimeDependent{T}}, FT<:Union{Vector{SVector{3, T}}, TimeDependent{SVector{3, T}}}}
+    function ClassicalSpinSystem(topology::SimpleGraph{Int}, coupling::CT; bias::FT=zeros(SVector{3, T}, nv(topology)), damping::T=0.0) where {T, CT<:Union{Vector{SVector{3, T}}, TimeDependent{SVector{3, T}}}, FT<:Union{Vector{SVector{3, T}}, TimeDependent{SVector{3, T}}}}
         @assert length(coupling) == ne(topology) "Coupling must be a vector of length $(ne(topology)), got $(length(coupling))"
         @assert length(bias) == nv(topology) "bias must be a vector of length $(nv(topology)), got $(length(bias))"
-        return new{T, CT, FT}(topology, coupling, bias)
+        return new{T, CT, FT}(topology, coupling, bias, damping)
     end
 end
 random_spins(n::Int; xbias=0.0, ybias=0.0, zbias=0.0) = [normalize(SVector((randn() + xbias, randn() + ybias, randn() + zbias))) for _ in 1:n]
 function energy(sys::ClassicalSpinSystem{T}, spins::Vector{SVector{3, T}}) where T
-    return sum(spins[i] ⋅ sys.bias[i] for i in 1:nv(sys.topology)) + sum(sys.coupling[i] * spins[src(e)][3] * spins[dst(e)][3] for (i, e) in enumerate(edges(sys.topology)))
+    return sum(spins[i] ⋅ sys.bias[i] for i in 1:nv(sys.topology)) + sum(sum(sys.coupling[i] .* spins[src(e)] .* spins[dst(e)]) for (i, e) in enumerate(edges(sys.topology)))
 end
 
 struct Checkpoint{T}
@@ -35,7 +35,6 @@ function simulate!(spins::Vector{SVector{D, T}}, sys::ClassicalSpinSystem{T}; al
     for i in 1:nsteps
         # evolve the state and update the field
         sysi = instantiate(sys, (i-1)*dt)
-        # sysi.coupling .= zero(sysi.coupling)
         evolve!(spins, sysi, h, algorithm, dt)
         if mod(i, checkpoint_steps) == 0
             push!(checkpoints, Checkpoint(copy(spins), i*dt))
@@ -43,7 +42,7 @@ function simulate!(spins::Vector{SVector{D, T}}, sys::ClassicalSpinSystem{T}; al
     end
     return spins, checkpoints
 end
-instantiate(sys::ClassicalSpinSystem{T}, t::T) where T = ClassicalSpinSystem(sys.topology, value!(sys.coupling, t), value!(sys.bias, t))
+instantiate(sys::ClassicalSpinSystem{T}, t::T) where T = ClassicalSpinSystem(sys.topology, value!(sys.coupling, t); bias=value!(sys.bias, t), damping=sys.damping)
 
 abstract type SpinDynamicsAlgorithm end
 
@@ -68,7 +67,7 @@ function evolve!(spins::Vector{SVector{D, T}}, sys::ClassicalSpinSystem{T}, h::V
             # TODO: support higher order TrotterSuzuki method
             Heff = single_spin_dynamics_operator(h[i])
             if !iszero(sys.damping)
-                field_damping = -sys.damping * Heff * spins[i]
+                field_damping = sys.damping * Heff * spins[i]
                 Heff += single_spin_dynamics_operator(field_damping)
             end
             spins[i] = exp(Heff * dt) * spins[i]
@@ -98,8 +97,8 @@ function field!(f::Vector{SVector{3, T}}, sys::ClassicalSpinSystem{T}, spins::Ve
     f .= sys.bias
     @inbounds for (e, J) in zip(edges(sys.topology), sys.coupling)
         i, j = src(e), dst(e)
-        f[i] += SVector(0.0, 0.0, J * spins[j][3])
-        f[j] += SVector(0.0, 0.0, J * spins[i][3])
+        f[i] += J .* spins[j]
+        f[j] += J .* spins[i]
     end
     return f
 end
