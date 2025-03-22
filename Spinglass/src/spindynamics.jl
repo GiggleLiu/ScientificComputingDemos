@@ -2,6 +2,7 @@ struct ClassicalSpinSystem{T}
     topology::SimpleGraph{Int}
     coupling::Vector{T}
 end
+random_spins(n::Int; D=3) = [normalize(SVector(ntuple(i -> randn(), D))) for _ in 1:n]
 
 function simulate!(spins::Vector{SVector{D, T}}, sys::ClassicalSpinSystem{T}; algorithm, nsteps::Int, dt::T, checkpoint_steps::Int=typemax(Int)) where {D, T}
     checkpoints = Vector{Vector{SVector{D, T}}}()
@@ -33,10 +34,11 @@ function evolve!(spins::Vector{SVector{D, T}}, sys::ClassicalSpinSystem{T}, h::V
     @assert K == 2 "Only second order TrotterSuzuki is implemented"
     for partition in algorithm.partitions
         field!(h, sys, spins)  # update the field
+        @show h
         for i in partition
             # spins[i] += single_spin_dynamics(h[i], spins[i]) * dt
             # TODO: accelerate the exp
-            spins[i] += exp(single_spin_dynamics_operator(h[i]) * dt) * spins[i]
+            spins[i] = exp(single_spin_dynamics_operator(h[i]) * dt) * spins[i]
         end
     end
 end
