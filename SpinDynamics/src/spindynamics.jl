@@ -1,12 +1,14 @@
 struct ClassicalSpinSystem{T}
     topology::SimpleGraph{Int}
     coupling::Vector{T}
-    function ClassicalSpinSystem(topology::SimpleGraph{Int}, coupling::Vector{T}) where T
+    field::Vector{SVector{3, T}}
+    function ClassicalSpinSystem(topology::SimpleGraph{Int}, coupling::Vector{T}, field::Vector{SVector{3, T}}=zeros(SVector{3, T}, nv(topology))) where T
         @assert length(coupling) == ne(topology) "Coupling must be a vector of length $(ne(topology)), got $(length(coupling))"
-        return new{T}(topology, coupling)
+        @assert length(field) == nv(topology) "Field must be a vector of length $(nv(topology)), got $(length(field))"
+        return new{T}(topology, coupling, field)
     end
 end
-random_spins(n::Int; D=3) = [normalize(SVector(ntuple(i -> randn(), D))) for _ in 1:n]
+random_spins(n::Int; xbias=0.0, ybias=0.0, zbias=0.0) = [normalize(SVector((randn() + xbias, randn() + ybias, randn() + zbias))) for _ in 1:n]
 
 function simulate!(spins::Vector{SVector{D, T}}, sys::ClassicalSpinSystem{T}; algorithm, nsteps::Int, dt::T, checkpoint_steps::Int=typemax(Int)) where {D, T}
     checkpoints = Vector{Vector{SVector{D, T}}}()
@@ -41,6 +43,7 @@ function evolve!(spins::Vector{SVector{D, T}}, sys::ClassicalSpinSystem{T}, h::V
         for i in partition
             # spins[i] += single_spin_dynamics(h[i], spins[i]) * dt
             # TODO: accelerate the exp
+            # TODO: support higher order TrotterSuzuki method
             spins[i] = exp(single_spin_dynamics_operator(h[i]) * dt) * spins[i]
         end
     end
@@ -67,8 +70,8 @@ function field(sys::ClassicalSpinSystem{T}, spins::Vector{SVector{3, T}}) where 
 end
 function field!(f::Vector{SVector{3, T}}, sys::ClassicalSpinSystem{T}, spins::Vector{SVector{3, T}}) where T
     @assert length(spins) == length(f) "Input must be a vector of length $(length(f)), got $(length(spins))"
-    fill!(f, zero(SVector{3, T}))
-    for (e, J) in zip(edges(sys.topology), sys.coupling)
+    f .= sys.field
+    @inbounds for (e, J) in zip(edges(sys.topology), sys.coupling)
         i, j = src(e), dst(e)
         f[i] += J * spins[j]
         f[j] += J * spins[i]

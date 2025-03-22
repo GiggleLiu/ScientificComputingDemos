@@ -31,7 +31,6 @@ function visualize_spins_animation(locs::Vector, history::Vector{Vector{SVector{
     
     # Create observables for the animation
     current_spins = Observable(history[1])
-    frame_num = Observable(1)
     
     # Create the arrows plot with observables
     arrows!(ax, 
