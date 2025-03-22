@@ -1,6 +1,10 @@
 struct ClassicalSpinSystem{T}
     topology::SimpleGraph{Int}
     coupling::Vector{T}
+    function ClassicalSpinSystem(topology::SimpleGraph{Int}, coupling::Vector{T}) where T
+        @assert length(coupling) == ne(topology) "Coupling must be a vector of length $(ne(topology)), got $(length(coupling))"
+        return new{T}(topology, coupling)
+    end
 end
 random_spins(n::Int; D=3) = [normalize(SVector(ntuple(i -> randn(), D))) for _ in 1:n]
 
@@ -34,7 +38,6 @@ function evolve!(spins::Vector{SVector{D, T}}, sys::ClassicalSpinSystem{T}, h::V
     @assert K == 2 "Only second order TrotterSuzuki is implemented"
     for partition in algorithm.partitions
         field!(h, sys, spins)  # update the field
-        @show h
         for i in partition
             # spins[i] += single_spin_dynamics(h[i], spins[i]) * dt
             # TODO: accelerate the exp

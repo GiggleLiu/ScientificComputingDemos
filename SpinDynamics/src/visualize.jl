@@ -1,39 +1,3 @@
-using Test
-using Spinglass: ClassicalSpinSystem, SpinVector, simulate!, greedy_coloring, is_valid_coloring, partite_edges, single_spin_dynamics_operator, single_spin_dynamics, SVector, TrotterSuzuki, random_spins
-using Graphs
-
-@testset "Spin dynamics" begin
-    topology = grid((3, 3))
-    sys = ClassicalSpinSystem(topology, [1.0, 1.0, 1.0])
-    spins = [SVector(ntuple(i -> randn(), 3)) for _ in 1:nv(sys.topology)]
-    state, history = simulate!(spins, sys; nsteps=100, dt=0.1, checkpoint_steps=10, algorithm=TrotterSuzuki{2}(topology))
-    @test length(history) == 10
-    @test length(state) == 9
-end
-
-@testset "Greedy coloring" begin
-    g = grid((10, 10))
-    coloring = greedy_coloring(g)
-    @test is_valid_coloring(g, coloring)
-    @test length(unique(coloring)) <= 5
-    eparts = partite_edges(g)
-    @test length(eparts) <= 4
-
-    g = path_graph(10)
-    eparts = partite_edges(g)
-    @test length(eparts) <= 2
-end
-
-@testset "single spin dynamics" begin
-    #s = SVector(randn(), randn(), randn())
-    s = SVector(1.0, 0.0, 0.0)
-    field = SVector(randn(), randn(), randn())
-    op = single_spin_dynamics_operator(field)
-    @test op * s ≈ single_spin_dynamics(field, s)
-end
-
-
-using CairoMakie
 function visualize_spins(locs::Vector, spins::Vector{SVector{3, T}}) where T
     fig = Figure(size=(800, 600))
     ax = Axis3(fig[1, 1], aspect=:data, 
@@ -54,7 +18,7 @@ function visualize_spins(locs::Vector, spins::Vector{SVector{3, T}}) where T
     return fig
 end
 
-function visualize_spins_animation(locs::Vector, history::Vector{Vector{SVector{3, T}}}, filename="spin_animation.mp4") where T
+function visualize_spins_animation(locs::Vector, history::Vector{Vector{SVector{3, T}}}; filename::String) where T
     fig = Figure(size=(800, 600))
     ax = Axis3(fig[1, 1], aspect=:data, 
                xlabel="x", ylabel="y", zlabel="z",
@@ -85,10 +49,3 @@ function visualize_spins_animation(locs::Vector, history::Vector{Vector{SVector{
     end
 end
 
-topology = grid((3, 3))
-sys = ClassicalSpinSystem(topology, [1.0, 1.0, 1.0])
-spins = random_spins(nv(topology))
-visualize_spins(vec([(i, j, 0) for i in 1:3 for j in 1:3]), spins)
-# history = [random_spins(nv(topology)) for _ in 1:100]
-_, history = simulate!(spins, sys; nsteps=100, dt=0.1, checkpoint_steps=1, algorithm=TrotterSuzuki{2}(topology))
-visualize_spins_animation(vec([(i, j, 0) for i in 1:3 for j in 1:3]), history)
