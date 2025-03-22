@@ -2,6 +2,7 @@ module Spinglass
 
 using Random
 using DelimitedFiles, Graphs, GenericTensorNetworks
+using LinearAlgebra, KrylovKit
 
 export load_spinglass, random_config, anneal
 export SpinConfig, SpinglassModel
@@ -12,5 +13,6 @@ include("simulated_annealing.jl")
 include("mis_sa.jl")
 include("logic_gates.jl")
 include("dynamics.jl")
+include("spindynamics.jl")
 
 end

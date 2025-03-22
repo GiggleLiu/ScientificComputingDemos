@@ -12,3 +12,7 @@ end
 @testset "dynamics" begin
     include("dynamics.jl")
 end
+
+@testset "Spin dynamics" begin
+    include("spindynamics.jl")
+end
