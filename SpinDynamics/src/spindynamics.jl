@@ -21,7 +21,7 @@ struct ClassicalSpinSystem{T, CT<:Union{Vector{T}, TimeDependent{T}}, FT<:Union{
 end
 random_spins(n::Int; xbias=0.0, ybias=0.0, zbias=0.0) = [normalize(SVector((randn() + xbias, randn() + ybias, randn() + zbias))) for _ in 1:n]
 function energy(sys::ClassicalSpinSystem{T}, spins::Vector{SVector{3, T}}) where T
-    return sum(spins[i] ⋅ sys.bias[i] for i in 1:nv(sys.topology)) + sum(sys.coupling[i] * spins[src(e)] ⋅ spins[dst(e)] for (i, e) in enumerate(edges(sys.topology)))
+    return sum(spins[i] ⋅ sys.bias[i] for i in 1:nv(sys.topology)) + sum(sys.coupling[i] * spins[src(e)][3] * spins[dst(e)][3] for (i, e) in enumerate(edges(sys.topology)))
 end
 
 struct Checkpoint{T}
@@ -33,7 +33,9 @@ function simulate!(spins::Vector{SVector{D, T}}, sys::ClassicalSpinSystem{T}; al
     h = field(instantiate(sys, 0.0), spins)
     for i in 1:nsteps
         # evolve the state and update the field
-        evolve!(spins, instantiate(sys, (i-1)*dt), h, algorithm, dt)
+        sysi = instantiate(sys, (i-1)*dt)
+        # sysi.coupling .= zero(sysi.coupling)
+        evolve!(spins, sysi, h, algorithm, dt)
         if mod(i, checkpoint_steps) == 0
             push!(checkpoints, Checkpoint(copy(spins), i*dt))
         end
@@ -77,9 +79,7 @@ function single_spin_dynamics(field::SVector{3, T}, spin::SVector{3, T}) where T
 end
 function single_spin_dynamics_operator(field::SVector{3, T}) where T
     return SMatrix{3, 3, T}(
-        zero(T), field[3], -field[2],
-        -field[3], zero(T), field[1],
-        field[2], -field[1], zero(T)
+        zero(T), field[3], -field[2], -field[3], zero(T), field[1], field[2], -field[1], zero(T)
     )
 end
 
@@ -92,8 +92,8 @@ function field!(f::Vector{SVector{3, T}}, sys::ClassicalSpinSystem{T}, spins::Ve
     f .= sys.bias
     @inbounds for (e, J) in zip(edges(sys.topology), sys.coupling)
         i, j = src(e), dst(e)
-        f[i] += J * spins[j]
-        f[j] += J * spins[i]
+        f[i] += SVector(0.0, 0.0, J * spins[j][3])
+        f[j] += SVector(0.0, 0.0, J * spins[i][3])
     end
     return f
 end

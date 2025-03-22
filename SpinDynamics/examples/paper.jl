@@ -1,4 +1,4 @@
-using SpinDynamics, Graphs
+using SpinDynamics, Graphs, LinearAlgebra
 
 # m: number of unit cells in the non-periodic direction (x-direction)
 # n: number of unit cells in the periodic direction (y-direction)
@@ -21,22 +21,19 @@ function example_system(n::Int, T::Float64)
     return sys
 end
 
-function simulate_afm_grid(n::Int, T::Float64; dt=0.01)
-    sys = example_system(n, T)
-    spins = random_spins(nv(sys.topology); xbias=5.0)
-    _, history = simulate!(spins, sys; nsteps=ceil(Int, T/dt), dt=dt, checkpoint_steps=10, algorithm=TrotterSuzuki{2}(sys.topology))
-    return history
-end
-
 function measure_zz(spins)
     n = length(spins)
-    return sum(spins[i][3] * spins[j][3] for i in 1:n, j in 1:n if i != j)/n/(n-1)
+    return sum((spins[i][3] * spins[j][3])^2 for i in 1:n, j in 1:n if i != j)/n/(n-1)
 end
 
 using CairoMakie
-function plot_zz(sys, history)
-    zz = [abs(measure_zz(st.spins)) for st in history]
+function plot_zz(T, dt)
+    sys = example_system(6, T)
+    spins = [SVector(1.0, 0.0, 0.0) for _ in 1:nv(sys.topology)]
+    _, history = simulate!(spins, sys; nsteps=ceil(Int, T/dt), dt=dt, checkpoint_steps=10, algorithm=TrotterSuzuki{2}(sys.topology))
+    zz = [measure_zz(st.spins) for st in history]
     eng = [energy(SpinDynamics.instantiate(sys, st.time), st.spins)/nv(sys.topology) for st in history]
+    bias = [SpinDynamics.instantiate(sys, st.time).bias[1].x for st in history]
     
     fig = Figure(size=(800, 600))
     ax = Axis(fig[1, 1], 
@@ -47,6 +44,7 @@ function plot_zz(sys, history)
     
     lines!(ax, 1:length(zz), zz, linewidth=2, color=:blue, label="ZZ")
     lines!(ax, 1:length(eng), eng, linewidth=2, color=:red, label="Energy")
+    lines!(ax, 1:length(bias), bias, linewidth=2, color=:green, label="Bias")
     axislegend(ax, position=:rb)
     return fig
 end
@@ -77,6 +75,30 @@ function plot_pulses(T)
 end
 
 plot_pulses(100.0)
-sys = example_system(6, 80.0)
-history = simulate_afm_grid(6, 80.0);
-plot_zz(sys, history)
+plot_zz(200.0, 0.01)
+
+function zz_scale(sys, Tlist; dt=0.001)
+    spins = [SVector(1.0, 0.0, 0.1) |> normalize for _ in 1:nv(sys.topology)]
+    zzlist = []
+    for T in Tlist
+        state, _ = simulate!(spins, sys; nsteps=ceil(Int, T/dt), dt=dt, algorithm=TrotterSuzuki{2}(sys.topology))
+        zz = measure_zz(state)
+        push!(zzlist, zz)
+    end
+    @show zzlist
+    
+    fig = Figure(size=(800, 600))
+    ax = Axis(fig[1, 1], 
+              xlabel="Time", 
+              ylabel="ZZ Correlation",
+              title="Spin-Spin Correlation Over Time",
+              yscale=log10,
+              limits=(nothing, (1e-8, 1e-0)),
+              )
+    
+    lines!(ax, Tlist, zzlist, linewidth=2, color=:blue, label="ZZ")
+    axislegend(ax, position=:rb)
+    return fig
+end
+
+zz_scale(sys, 1:5:60)
