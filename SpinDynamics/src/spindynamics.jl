@@ -1,27 +1,46 @@
-struct ClassicalSpinSystem{T}
+struct TimeDependent{T, FT}
+    value::Vector{T}
+    f!::FT
+end
+function value!(td::TimeDependent, t)
+    td.f!(td.value, t)
+    return td.value
+end
+value!(v::Vector, t) = v
+Base.length(td::TimeDependent) = length(td.value)
+
+struct ClassicalSpinSystem{T, CT<:Union{Vector{T}, TimeDependent{T}}, FT<:Union{Vector{SVector{3, T}}, TimeDependent{SVector{3, T}}}}
     topology::SimpleGraph{Int}
-    coupling::Vector{T}
-    field::Vector{SVector{3, T}}
-    function ClassicalSpinSystem(topology::SimpleGraph{Int}, coupling::Vector{T}, field::Vector{SVector{3, T}}=zeros(SVector{3, T}, nv(topology))) where T
+    coupling::CT
+    bias::FT
+    function ClassicalSpinSystem(topology::SimpleGraph{Int}, coupling::CT, bias::FT=zeros(SVector{3, T}, nv(topology))) where {T, CT<:Union{Vector{T}, TimeDependent{T}}, FT<:Union{Vector{SVector{3, T}}, TimeDependent{SVector{3, T}}}}
         @assert length(coupling) == ne(topology) "Coupling must be a vector of length $(ne(topology)), got $(length(coupling))"
-        @assert length(field) == nv(topology) "Field must be a vector of length $(nv(topology)), got $(length(field))"
-        return new{T}(topology, coupling, field)
+        @assert length(bias) == nv(topology) "bias must be a vector of length $(nv(topology)), got $(length(bias))"
+        return new{T, CT, FT}(topology, coupling, bias)
     end
 end
 random_spins(n::Int; xbias=0.0, ybias=0.0, zbias=0.0) = [normalize(SVector((randn() + xbias, randn() + ybias, randn() + zbias))) for _ in 1:n]
+function energy(sys::ClassicalSpinSystem{T}, spins::Vector{SVector{3, T}}) where T
+    return sum(spins[i] ⋅ sys.bias[i] for i in 1:nv(sys.topology)) + sum(sys.coupling[i] * spins[src(e)] ⋅ spins[dst(e)] for (i, e) in enumerate(edges(sys.topology)))
+end
 
+struct Checkpoint{T}
+    spins::Vector{SVector{3, T}}
+    time::T
+end
 function simulate!(spins::Vector{SVector{D, T}}, sys::ClassicalSpinSystem{T}; algorithm, nsteps::Int, dt::T, checkpoint_steps::Int=typemax(Int)) where {D, T}
-    checkpoints = Vector{Vector{SVector{D, T}}}()
-    h = field(sys, spins)
+    checkpoints = Vector{Checkpoint{T}}()
+    h = field(instantiate(sys, 0.0), spins)
     for i in 1:nsteps
         # evolve the state and update the field
-        evolve!(spins, sys, h, algorithm, dt)
+        evolve!(spins, instantiate(sys, (i-1)*dt), h, algorithm, dt)
         if mod(i, checkpoint_steps) == 0
-            push!(checkpoints, copy(spins))
+            push!(checkpoints, Checkpoint(copy(spins), i*dt))
         end
     end
     return spins, checkpoints
 end
+instantiate(sys::ClassicalSpinSystem{T}, t::T) where T = ClassicalSpinSystem(sys.topology, value!(sys.coupling, t), value!(sys.bias, t))
 
 abstract type SpinDynamicsAlgorithm end
 
@@ -70,7 +89,7 @@ function field(sys::ClassicalSpinSystem{T}, spins::Vector{SVector{3, T}}) where 
 end
 function field!(f::Vector{SVector{3, T}}, sys::ClassicalSpinSystem{T}, spins::Vector{SVector{3, T}}) where T
     @assert length(spins) == length(f) "Input must be a vector of length $(length(f)), got $(length(spins))"
-    f .= sys.field
+    f .= sys.bias
     @inbounds for (e, J) in zip(edges(sys.topology), sys.coupling)
         i, j = src(e), dst(e)
         f[i] += J * spins[j]
