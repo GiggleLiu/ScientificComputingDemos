@@ -15,7 +15,7 @@ end
 function example_system(n::Int, T::Float64)
     topology = cylinder(n, n)
     Jmax, Hmax = 2.0, 2.0
-    Jt = TimeDependent(ones(ne(topology)), (J, t) -> (J .= Jmax * sin(π/2 * t / T)))
+    Jt = TimeDependent(ones(ne(topology)), (J, t) -> (J .= Jmax * rand(Bool, ne(topology)) * sin(π/2 * t / T)))
     ht = TimeDependent(fill(SVector(-5.0, 0.0, 0.0), nv(topology)), (h, t) -> (h .= Ref(SVector(-Hmax * (cos(π/2 * t / T)), 0.0, 0.0))))
     sys = ClassicalSpinSystem(topology, Jt, ht)
     return sys
@@ -77,13 +77,16 @@ end
 plot_pulses(100.0)
 plot_zz(200.0, 0.01)
 
-function zz_scale(sys, Tlist; dt=0.001)
-    spins = [SVector(1.0, 0.0, 0.1) |> normalize for _ in 1:nv(sys.topology)]
+function zz_scale(Tlist; dt=0.001, nrepeat=10)
     zzlist = []
     for T in Tlist
-        state, _ = simulate!(spins, sys; nsteps=ceil(Int, T/dt), dt=dt, algorithm=TrotterSuzuki{2}(sys.topology))
-        zz = measure_zz(state)
-        push!(zzlist, zz)
+        sys = example_system(6, T)
+        zz = sum(1:nrepeat) do _
+            spins = [SVector(1.0, 0.0, 0.01*randn()) |> normalize for _ in 1:nv(sys.topology)]
+            state, _ = simulate!(spins, sys; nsteps=ceil(Int, T/dt), dt=dt, algorithm=TrotterSuzuki{2}(sys.topology))
+            measure_zz(state)
+        end
+        push!(zzlist, zz/nrepeat)
     end
     @show zzlist
     
@@ -93,7 +96,8 @@ function zz_scale(sys, Tlist; dt=0.001)
               ylabel="ZZ Correlation",
               title="Spin-Spin Correlation Over Time",
               yscale=log10,
-              limits=(nothing, (1e-8, 1e-0)),
+              xscale=log10,
+              limits=((1e-1, 1e2), (1e-8, 1e-0)),
               )
     
     lines!(ax, Tlist, zzlist, linewidth=2, color=:blue, label="ZZ")
@@ -101,4 +105,4 @@ function zz_scale(sys, Tlist; dt=0.001)
     return fig
 end
 
-zz_scale(sys, 1:5:60)
+zz_scale(exp.(-2:0.05:5), dt=0.01, nrepeat=10)
