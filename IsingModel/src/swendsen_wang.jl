@@ -120,21 +120,10 @@ function mcstep!(model::SwendsenWangModel, config::SwendsenWangConfig)
 end
 
 # Simulate the Ferromagnetic spin model with the Swendsen-Wang method
-function simulate!(model::SwendsenWangModel, spin; nsteps_heatbath, nsteps_eachbin, nbins)
+function simulate!(model::SwendsenWangModel, spin::AbstractArray; nsteps_heatbath::Int, nsteps_eachbin::Int, nbins::Int, taumax::Int)
     @assert length(spin) == model.l^2
-    config = SwendsenWangConfig(spin)
-
-    for _ = 1:nsteps_heatbath
-        mcstep!(model, config)
-    end
-
-    result = SimulationResult(nbins, nsteps_eachbin)
-    for j = 1:nbins
-        result.current_bin[] = j
-        for _ = 1:nsteps_eachbin
-            mcstep!(model, config)
-            measure!(result, model, config.spin)
-        end
-    end
-    return result
+    return simulate!(model, SwendsenWangConfig(spin); nsteps_heatbath, nsteps_eachbin, nbins, taumax)
+end
+function measure!(result::SimulationResult, model::SwendsenWangModel, config::SwendsenWangConfig, j::Int)
+    measure!(result, model, config.spin, j)
 end
