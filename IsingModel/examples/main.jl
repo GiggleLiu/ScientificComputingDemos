@@ -57,17 +57,14 @@ function generate_ising_video(model_type, lattice_size, temperature, magnetic_fi
     
     if model_type == SwendsenWangModel
         config = SwendsenWangConfig(spin)
-        spinobs = Observable(spin)
-        text_x_pos = -20
-    else
-        spinobs = Observable(spin)
-        text_x_pos = -30
     end
+    spinobs = Observable(spin)
+ 
     
     ax1 = Axis(fig[1, 1]; aspect = DataAspect()); hidedecorations!(ax1); hidespines!(ax1)
     Makie.heatmap!(ax1, spinobs)
     txt = Observable("t = 0")
-    Makie.text!(ax1, text_x_pos, lattice_size-10; text=txt, color=:black, fontsize=30, strokecolor=:white)
+    Makie.text!(ax1, -30, lattice_size-10; text=txt, color=:black, fontsize=30, strokecolor=:white)
     
     filename = joinpath(@__DIR__, "$(filename_prefix)-$temperature.mp4")
     record(fig, filename, 2:1000; framerate = 24) do i
