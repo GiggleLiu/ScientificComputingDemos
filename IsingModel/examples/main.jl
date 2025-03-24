@@ -62,7 +62,7 @@ function generate_ising_video(model_type, lattice_size, temperature, magnetic_fi
  
     
     ax1 = Axis(fig[1, 1]; aspect = DataAspect()); hidedecorations!(ax1); hidespines!(ax1)
-    Makie.heatmap!(ax1, spinobs)
+    Makie.heatmap!(ax1, spinobs, colorrange=(-1, 1))
     txt = Observable("t = 0")
     Makie.text!(ax1, -30, lattice_size-10; text=txt, color=:black, fontsize=30, strokecolor=:white)
     
