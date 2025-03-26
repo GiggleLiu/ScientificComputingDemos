@@ -39,12 +39,10 @@ extracted = ProblemReductions.extract_solution(mapres, solution[1])
 # Example 2: Simulated Annealing Method (approximate)
 #####################################################
 @info "#### Simulated Annealing for Spinglass solving ####"
-using Spinglass
-
 # Load a spin glass problem from file
 filename = pkgdir(Spinglass, "data", "example.txt")
 sap = load_spinglass(filename)
-@info "Loaded spinglass from: $filename, number of spins = $(sap.n)"
+@info "Loaded spinglass from: $filename, number of spins = $(ProblemReductions.num_variables(sap))"
 
 # Configure annealing parameters
 tempscales = 10 .- (1:64 .- 1) .* 0.15  # Temperature schedule
