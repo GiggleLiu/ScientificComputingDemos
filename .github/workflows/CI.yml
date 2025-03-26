@@ -33,6 +33,7 @@ jobs:
           - GraphClustering
           - IsingModel
           - SpringSystem
+          - Spinglass
     steps:
       - uses: actions/checkout@v4
       - uses: julia-actions/setup-julia@v2

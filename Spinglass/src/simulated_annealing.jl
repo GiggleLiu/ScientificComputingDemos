@@ -8,18 +8,21 @@ function load_spinglass(filename::String)
     is = Int.(view(data, :, 1)) .+ 1  #! @. means broadcast for the following functions, is here used correctly?
     js = Int.(view(data, :, 2)) .+ 1
     num_spin = max(maximum(is), maximum(js))
-    SpinGlass(num_spin, collect.(zip(is, js)), data[:,3])
+    g = SimpleGraph(num_spin)
+    for (i, j) in zip(is, js)
+        add_edge!(g, i, j)
+    end
+    SpinGlass(g, data[:,3], zeros(num_spin))
 end
 
 struct SpinGlassSA{T, MT<:AbstractMatrix{T}}
     coupling::MT
 end
-function SpinGlassSA(sg::SpinGlass)
-    @assert all(x->length(x)==2, sg.cliques) "cliques should only contain quadratic terms"
-    coupling = zeros(sg.n, sg.n)
-    for ((i, j), weight) in zip(sg.cliques, sg.weights)
-        coupling[i, j] = weight/2
-        coupling[j, i] = weight/2
+function SpinGlassSA(sg::SpinGlass{<:SimpleGraph})
+    coupling = zeros(nv(sg.graph), nv(sg.graph))
+    for (e, weight) in zip(edges(sg.graph), sg.J)
+        coupling[src(e), dst(e)] = weight/2
+        coupling[dst(e), src(e)] = weight/2
     end
     SpinGlassSA(coupling)
 end
