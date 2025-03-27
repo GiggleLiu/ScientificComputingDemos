@@ -19,10 +19,10 @@ function create_weather_hmm()
          0.1 0.3 0.6]    # Rainy -> Dry/Humid/Wet
 
     # Initial state distribution
-    π = [0.4, 0.4, 0.2]  # Initial probability of Sunny/Cloudy/Rainy
+    p0 = [0.4, 0.4, 0.2]  # Initial probability of Sunny/Cloudy/Rainy
 
     # Create the HMM
-    return HMM(A, B, π)
+    return HMM(A, B, p0)
 end
 
 """
@@ -153,8 +153,8 @@ function run_weather_example()
                                           "Comparison using the learned model:")
 
     # Plot the results
-    plot_results(days, true_states, predicted_states, observations, state_labels)
-    
+    fig = plot_results(days, true_states, predicted_states, observations, state_labels)
+    display(fig)
     println("\nExample completed!")
     return weather_hmm, learned_hmm, accuracy, learned_accuracy
 end

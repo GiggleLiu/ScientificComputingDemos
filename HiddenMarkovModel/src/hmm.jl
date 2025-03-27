@@ -1,33 +1,32 @@
 """
     HMM{T}
 
-Hidden Markov Model with transition matrix A, emission matrix B, and initial state distribution π.
+Hidden Markov Model with transition matrix A, emission matrix B, and initial state distribution p0.
 
 # Fields
 - `A::Matrix{T}`: Transition probability matrix where A[i,j] is the probability of transitioning from state i to state j
 - `B::Matrix{T}`: Emission probability matrix where B[i,k] is the probability of emitting observation k from state i
-- `π::Vector{T}`: Initial state probability distribution
+- `p0::Vector{T}`: Initial state probability distribution
 """
 struct HMM{T<:Real}
     A::Matrix{T}  # Transition matrix
     B::Matrix{T}  # Emission matrix
-    π::Vector{T}  # Initial state distribution
+    p0::Vector{T}  # Initial state distribution
     
-    function HMM(A::Matrix{T}, B::Matrix{T}, π::Vector{T}) where {T<:Real}
+    function HMM(A::Matrix{T}, B::Matrix{T}, p0::Vector{T}) where {T<:Real}
         # Validate dimensions
         n_states = size(A, 1)
-        n_observations = size(B, 2)
         
         size(A, 2) == n_states || throw(DimensionMismatch("Transition matrix A must be square"))
         size(B, 1) == n_states || throw(DimensionMismatch("Emission matrix B must have same number of rows as states"))
-        length(π) == n_states || throw(DimensionMismatch("Initial distribution π must have same length as number of states"))
+        length(p0) == n_states || throw(DimensionMismatch("Initial distribution p0 must have same length as number of states"))
         
         # Validate probabilities
         all(isapprox.(sum(A, dims=2), 1)) || @warn "Rows of transition matrix A should sum to 1"
         all(isapprox.(sum(B, dims=2), 1)) || @warn "Rows of emission matrix B should sum to 1"
-        isapprox(sum(π), 1) || @warn "Initial distribution π should sum to 1"
+        isapprox(sum(p0), 1) || @warn "Initial distribution p0 should sum to 1"
         
-        new{T}(A, B, π)
+        new{T}(A, B, p0)
     end
 end
 
@@ -38,19 +37,19 @@ Compute the forward probabilities for a sequence of observations.
 Returns the forward probability matrix and the likelihood of the observations.
 """
 function forward(hmm::HMM, observations::Vector{Int})
-    n_states = length(hmm.π)
+    n_states = length(hmm.p0)
     T = length(observations)
     
     # Initialize forward matrix
     α = zeros(n_states, T)
     
     # Initialize first column with initial state * emission probability
-    α[:, 1] = hmm.π .* hmm.B[:, observations[1]]
+    α[:, 1] = ein"i,i->i"(hmm.p0, hmm.B[:, observations[1]])
     
     # Forward algorithm using einsum for matrix operations
     for t in 2:T
         # α_t(j) = B_j(o_t) * ∑_i α_{t-1}(i) * A_ij
-        α[:, t] = hmm.B[:, observations[t]] .* ein"ij,i->j"(hmm.A, α[:, t-1])
+        α[:, t] = ein"j,(ij,i)->j"(hmm.B[:, observations[t]], hmm.A, α[:, t-1])
     end
     
     # Likelihood is the sum of the final column
@@ -65,7 +64,7 @@ end
 Compute the backward probabilities for a sequence of observations.
 """
 function backward(hmm::HMM, observations::Vector{Int})
-    n_states = length(hmm.π)
+    n_states = length(hmm.p0)
     T = length(observations)
     
     # Initialize backward matrix
@@ -77,7 +76,7 @@ function backward(hmm::HMM, observations::Vector{Int})
     # Backward algorithm using einsum
     for t in (T-1):-1:1
         # β_t(i) = ∑_j A_ij * B_j(o_{t+1}) * β_{t+1}(j)
-        β[:, t] = ein"ij,j,j->i"(hmm.A, hmm.B[:, observations[t+1]], β[:, t+1])
+        β[:, t] = ein"ij,(j,j)->i"(hmm.A, hmm.B[:, observations[t+1]], β[:, t+1])
     end
     
     return β
@@ -89,7 +88,7 @@ end
 Find the most likely sequence of hidden states given the observations.
 """
 function viterbi(hmm::HMM, observations::Vector{Int})
-    n_states = length(hmm.π)
+    n_states = length(hmm.p0)
     T = length(observations)
     
     # Initialize viterbi matrix (log probabilities)
@@ -98,7 +97,7 @@ function viterbi(hmm::HMM, observations::Vector{Int})
     backptr = zeros(Int, n_states, T)
     
     # Initialize first column
-    V[:, 1] = log.(hmm.π) .+ log.(hmm.B[:, observations[1]])
+    V[:, 1] = log.(hmm.p0) .+ log.(hmm.B[:, observations[1]])
     
     # Viterbi algorithm
     for t in 2:T
@@ -134,10 +133,10 @@ function baum_welch(observations::Vector{Int}, n_states::Int, n_observations::In
     B = rand(n_states, n_observations)
     B = B ./ sum(B, dims=2)  # Normalize rows
     
-    π = rand(n_states)
-    π = π ./ sum(π)  # Normalize
+    p0 = rand(n_states)
+    p0 = p0 ./ sum(p0)  # Normalize
     
-    hmm = HMM(A, B, π)
+    hmm = HMM(A, B, p0)
     
     T = length(observations)
     prev_likelihood = -Inf
@@ -171,7 +170,7 @@ function baum_welch(observations::Vector{Int}, n_states::Int, n_observations::In
         
         # M-step: Update parameters
         # Update initial state distribution
-        new_π = γ[:, 1]
+        new_p0 = γ[:, 1]
         
         # Update transition matrix
         new_A = sum(ξ, dims=3)[:, :, 1] ./ sum(γ[:, 1:end-1], dims=2)
@@ -186,7 +185,7 @@ function baum_welch(observations::Vector{Int}, n_states::Int, n_observations::In
         end
         
         # Create new HMM with updated parameters
-        hmm = HMM(new_A, new_B, new_π)
+        hmm = HMM(new_A, new_B, new_p0)
     end
     
     return hmm
@@ -206,7 +205,7 @@ function generate_sequence(hmm::HMM, length::Int)
     states = zeros(Int, length)
     
     # Sample initial state
-    states[1] = sample(1:n_states, Weights(hmm.π))
+    states[1] = sample(1:n_states, Weights(hmm.p0))
     # Sample initial observation
     observations[1] = sample(1:n_observations, Weights(hmm.B[states[1], :]))
     
