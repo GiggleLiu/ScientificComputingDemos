@@ -112,7 +112,7 @@ function viterbi(hmm::HMM, observations::Vector{Int})
     
     # Backtracking
     path = zeros(Int, T)
-    path[T], _ = findmax(V[:, T])
+    _, path[T] = findmax(V[:, T])
     
     for t in (T-1):-1:1
         path[t] = backptr[path[t+1], t+1]
@@ -128,15 +128,13 @@ Learn the parameters of an HMM using the Baum-Welch algorithm (EM for HMMs).
 """
 function baum_welch(observations::Vector{Int}, n_states::Int, n_observations::Int; max_iter=100, tol=1e-6)
     # Initialize random HMM parameters
-    rng = Random.default_rng()
-    
-    A = rand(rng, n_states, n_states)
+    A = rand(n_states, n_states)
     A = A ./ sum(A, dims=2)  # Normalize rows
     
-    B = rand(rng, n_states, n_observations)
+    B = rand(n_states, n_observations)
     B = B ./ sum(B, dims=2)  # Normalize rows
     
-    π = rand(rng, n_states)
+    π = rand(n_states)
     π = π ./ sum(π)  # Normalize
     
     hmm = HMM(A, B, π)

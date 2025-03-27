@@ -1,6 +1,5 @@
 using HiddenMarkovModel
 using CairoMakie
-using HiddenMarkovModel.StatsBase
 
 """
     create_weather_hmm()
@@ -107,10 +106,8 @@ function plot_results(days, true_states, predicted_states, observations, state_l
     scatter!(ax, 1:days, observations, marker = :diamond, color = :green)
 
     # Add legend
-    axislegend(ax, position = :outertopright)
+    axislegend(ax)
 
-    # Display the figure
-    display(fig)
     return fig
 end
 

@@ -2,7 +2,7 @@ module HiddenMarkovModel
 
 using OMEinsum
 using LinearAlgebra
-using Random, StatsBase
+using StatsBase
 
 export HMM, forward, backward, viterbi, baum_welch, generate_sequence
 
