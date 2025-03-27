@@ -1,0 +1,3 @@
+[deps]
+CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
+HiddenMarkovModel = "9fa66fbd-4335-469e-840d-99b9fe4b4253"
