@@ -36,4 +36,5 @@ Manifest.toml
 GraphClustering/examples/*.png
 SimpleKrylov/examples/*.png
 Spinglass/examples/*.png
+SpinDynamics/examples/*.png
 *.gif
