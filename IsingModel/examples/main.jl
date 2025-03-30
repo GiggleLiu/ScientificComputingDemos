@@ -36,16 +36,19 @@ function plot_simulation_data(f1::String, f2::String, output_filename)
     data = readdlm(f1)
     tcorr = readdlm(f2)
     fig = Figure(size=(800, 400))
-    ax = Axis(fig[1, 1], xlabel="time")
+    ax = Axis(fig[1, 1], xlabel="sweeps", xlabelsize=24)
     legends = ["energy/spin", "(energy/spin)²", "|m|", "m²", "m⁴"]
 
+    steps = 1000 .* (0:size(data, 1)-1)
     for i=1:5
-        lines!(ax, data[:, i], label=legends[i])
+        lines!(ax, steps, data[:, i], label=legends[i])
     end
+    Label(fig[1,1][1, 1, TopLeft()], "(a)", fontsize=24)
     axislegend(ax)
 
-    ax = Axis(fig[1, 2], xlabel="time", yscale=log10)
-    lines!(ax, max.(1e-3, vec(tcorr)), label="autocorrelation time")
+    ax = Axis(fig[1, 2], xlabel="τ", yscale=log10, xlabelsize=24)
+    lines!(ax, max.(1e-3, vec(tcorr)), label="autocorrelation function")
+    Label(fig[1,2][1, 1, TopLeft()], "(b)", fontsize=24)
     axislegend(ax)
     save(output_filename, fig, px_per_unit=2)
     @info "The plot is saved to: `$output_filename`."
