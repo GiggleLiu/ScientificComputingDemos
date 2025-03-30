@@ -34,6 +34,7 @@ jobs:
           - IsingModel
           - SpringSystem
           - Spinglass
+          - SpinDynamics
     steps:
       - uses: actions/checkout@v4
       - uses: julia-actions/setup-julia@v2
