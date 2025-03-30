@@ -59,44 +59,59 @@ end
 struct SimulationResult{RT}
     nbins::Int                      # number of bins
     nsteps_eachbin::Int             # number of steps in each bin
-    current_bin::Base.RefValue{Int} # current bin index
     energy::Vector{RT}              # energy/spin
     energy2::Vector{RT}             # (energy/spin)^2
     m::Vector{RT}                   # |m|
     m2::Vector{RT}                  # m^2
     m4::Vector{RT}                  # m^4
 end
-SimulationResult(nbins, nsteps_eachbin) = SimulationResult(nbins, nsteps_eachbin, Ref(0), zeros(nbins), zeros(nbins), zeros(nbins), zeros(nbins), zeros(nbins))
+SimulationResult(nbins, nsteps_eachbin) = SimulationResult(nbins, nsteps_eachbin, zeros(nbins), zeros(nbins), zeros(nbins), zeros(nbins), zeros(nbins))
 
 # Measures the energy and magnetization
-function measure!(result::SimulationResult, model::AbstractSpinModel, spin)
-    @boundscheck checkbounds(result.energy, result.current_bin[])
+# j: the index of the bin
+# k: the index of the step
+function measure!(result::SimulationResult, model::AbstractSpinModel, spin, j::Int)
+    @boundscheck checkbounds(result.energy, j)
     m = sum(spin)
     e = energy(model, spin)
     n = num_spin(model)
-    k = result.current_bin[]
-    @inbounds result.energy[k] += e/n
-    @inbounds result.energy2[k] += (e/n)^2
-    @inbounds result.m[k] += abs(m/n)
-    @inbounds result.m2[k] += (m/n)^2
-    @inbounds result.m4[k] += (m/n)^4
+    @inbounds result.energy[j] += e/n
+    @inbounds result.energy2[j] += (e/n)^2
+    @inbounds result.m[j] += abs(m/n)
+    @inbounds result.m2[j] += (m/n)^2
+    @inbounds result.m4[j] += (m/n)^4
+    return m/n, e/n
 end
 
 # Simulates the Ising model
-function simulate!(model::IsingSpinModel, spin; nsteps_heatbath, nsteps_eachbin, nbins)
+function simulate!(model::AbstractSpinModel, spin; nsteps_heatbath::Int, nsteps_eachbin::Int, nbins::Int, taumax::Int)
     # heat bath
     for _ = 1:nsteps_heatbath
         mcstep!(model, spin)    
     end
     result = SimulationResult(nbins, nsteps_eachbin)
-    for j=1:nbins
-        result.current_bin[] = j
-        for _ = 1:nsteps_eachbin
-            mcstep!(model, spin)
-            measure!(result, model, spin)
+
+    mvec = zeros(taumax)  # a sequence of m, for computing the autocorrelation time
+    m_mean, m_mean2, m_corr_mean = 0.0, zeros(taumax), zeros(taumax)
+    k = 0
+    for j=1:nbins, _ in 1:nsteps_eachbin
+        k += 1
+        mcstep!(model, spin)
+        m, _ = measure!(result, model, spin, j)
+
+        # update mvec
+        circshift!(mvec, -1)
+        mvec[end] = abs(m)
+
+        # update m_mean, m_mean2, m_corr_mean
+        if k > taumax
+            m_mean += mvec[1]
+            m_mean2 .+= (mvec[1]^2 .+ mvec .^ 2) ./ 2
+            m_corr_mean .+= mvec[1] .* mvec
         end
     end
-    return result
+    m_mean, m_mean2, m_corr_mean = m_mean / (k - taumax), m_mean2 / (k - taumax), m_corr_mean / (k - taumax)
+    return result, (m_corr_mean .- m_mean^2) ./ (m_mean2 .- m_mean^2)
 end
 
 # Write the simulation result to a file

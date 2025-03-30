@@ -1,8 +1,8 @@
-using Spinglass, Test, Random
+using Spinglass, Test, Random, Graphs
 
 @testset "loading" begin
     sap = load_spinglass(pkgdir(Spinglass, "data", "example.txt"))
-    @test sap.n == 300
+    @test nv(sap.graph) == 300
     sapsa = Spinglass.SpinGlassSA(sap)
     @test size(sapsa.coupling) == (300, 300)
 end

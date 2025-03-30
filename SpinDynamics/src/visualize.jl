@@ -47,4 +47,3 @@ function visualize_spins_animation(locs::Vector, history::Vector{Vector{SVector{
         setproperty!(ax, :title, "Spin Visualization - Frame $frame_idx")
     end
 end
-
