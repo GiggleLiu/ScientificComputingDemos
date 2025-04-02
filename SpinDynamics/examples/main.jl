@@ -38,7 +38,7 @@ function simulate_afm_grid(n::Int; nsteps=1000, dt=0.01, checkpoint_interval=10)
     return history
 end
 
-function visualize_spins(locs::Vector, spins::Vector) where T
+function visualize_spins(locs::Vector, spins::Vector)
     @info "Visualizing $(length(spins)) spins..."
     fig = Figure(size=(800, 600))
     ax = Axis3(fig[1, 1], aspect=:data, 
@@ -59,7 +59,7 @@ function visualize_spins(locs::Vector, spins::Vector) where T
     return fig
 end
 
-function visualize_spins_animation(locs::Vector, history::Vector; filename::String) where T
+function visualize_spins_animation(locs::Vector, history::Vector; filename::String)
     @info "Creating spin animation with $(length(history)) frames..."
     fig = Figure(size=(800, 600))
     ax = Axis3(fig[1, 1], aspect=:data, 
@@ -162,8 +162,8 @@ end
 # Generate and display the energy landscape visualization
 @info "Generating energy landscape visualization..."
 landscape_fig = visualize_energy_landscape_all()
-save(joinpath(@__DIR__, "energy_landscapes.png"), landscape_fig)
-@info "Energy landscape visualization saved to $(joinpath(@__DIR__, "energy_landscapes.png"))"
+save(joinpath(@__DIR__, "energy_landscapes.svg"), landscape_fig)
+@info "Energy landscape visualization saved to $(joinpath(@__DIR__, "energy_landscapes.svg"))"
 
 # Run a bifurcation simulation for a two-point model
 function twopoint_bifurcation_simulation(kind::Symbol, initial_scale=0.05)
@@ -250,6 +250,6 @@ end
 # Generate and save the energy evolution visualization
 @info "Generating energy evolution visualization..."
 energy_fig = twopoint_energy_evolution()
-save(joinpath(@__DIR__, "bifurcation_energy_evolution.png"), energy_fig)
-@info "Energy evolution visualization saved to $(joinpath(@__DIR__, "bifurcation_energy_evolution.png"))"
+save(joinpath(@__DIR__, "bifurcation_energy_evolution.svg"), energy_fig)
+@info "Energy evolution visualization saved to $(joinpath(@__DIR__, "bifurcation_energy_evolution.svg"))"
 @info "=== Examples completed successfully ==="
