@@ -1,8 +1,8 @@
 using PhysicsSimulation
 using Test
 
-@testset "chain" begin
-    include("chain.jl")
+@testset "point" begin
+    include("point.jl")
 end
 
 @testset "planet" begin

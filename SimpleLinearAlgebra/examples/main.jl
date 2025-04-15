@@ -1,38 +1,109 @@
-using SimpleLinearAlgebra
+using SimpleLinearAlgebra: classical_gram_schmidt, modified_gram_schmidt, lufact!, lufact_pivot!, givens_qr!, householder_qr!
 using LinearAlgebra
-# modified gram schmidt is more stable than classical gram schmidt
-n = 100
-A = randn(n, n)
-@info "Running Gram-Schmidt orthogonalization for a random matrix of size ($n x $n)"
-Q1, R1 = classical_gram_schmidt(A)
-Q2, R2 = modified_gram_schmidt!(copy(A))
-@info "Error in the classical Gram-Schmidt orthogonalization: $(norm(Q1' * Q1 - I))"
-@info "Error in the modified Gram-Schmidt orthogonalization: $(norm(Q2' * Q2 - I))"
+using Printf
 
+function run_gram_schmidt_example(n=100)
+    println("\n=== Gram-Schmidt Orthogonalization ===")
+    A = randn(n, n)
+    println("Testing with random matrix of size ($n × $n)")
+    
+    # Classical Gram-Schmidt
+    Q1, R1 = classical_gram_schmidt(A)
+    classical_error = norm(Q1'Q1 - I)
+    
+    # Modified Gram-Schmidt
+    Q2, R2 = modified_gram_schmidt(A)
+    modified_error = norm(Q2'Q2 - I)
+    
+    # Built-in QR for comparison
+    Q3, R3 = qr(A)
+    builtin_error = norm(Matrix(Q3)'Matrix(Q3) - I)
+    
+    # Print results
+    @printf "Classical G-S orthogonality error: %.2e\n" classical_error
+    @printf "Modified G-S orthogonality error:  %.2e\n" modified_error
+    @printf "Built-in QR orthogonality error:   %.2e\n" builtin_error
+    
+    # Check factorization accuracy
+    @printf "Classical G-S factorization error: %.2e\n" norm(Q1*R1 - A)
+    @printf "Modified G-S factorization error:  %.2e\n" norm(Q2*R2 - A)
+    @printf "Built-in QR factorization error:   %.2e\n" norm(Matrix(Q3)*R3 - A)
+end
 
-n = 100
-A = randn(n, n)
-@info "Running LU factorization for a random matrix of size ($n x $n)"
-L0, U0 = lufact!(copy(A))
-@info "Without pivoting, the error is: $(sum(abs, A - L0 * U0))"
+function run_lu_example(n=100)
+    println("\n=== LU Factorization ===")
+    A = randn(n, n)
+    println("Testing with random matrix of size ($n × $n)")
+    
+    # Without pivoting
+    L0, U0 = lufact!(copy(A))
+    no_pivot_error = norm(A - L0*U0)
+    
+    # With pivoting
+    L, U, P = lufact_pivot!(copy(A))
+    pmat = zeros(Int, n, n)
+    setindex!.(Ref(pmat), 1, 1:n, P)
+    pivot_error = norm(pmat*A - L*U)
+    
+    # Built-in LU for comparison
+    F = lu(A)
+    builtin_error = norm(F.P*A - F.L*F.U)
+    
+    # Print results
+    @printf "LU without pivoting error:  %.2e\n" no_pivot_error
+    @printf "LU with pivoting error:     %.2e\n" pivot_error
+    @printf "Built-in LU error:          %.2e\n" builtin_error
+end
 
-L, U, P = lufact_pivot!(copy(A))
-pmat = zeros(Int, n, n)
-setindex!.(Ref(pmat), 1, 1:n, P)
-@info "With pivoting, the error is: $(sum(abs, pmat * A - L * U))"
+function run_qr_example(n=100)
+    println("\n=== QR Factorization ===")
+    A = randn(n, n)
+    println("Testing with random matrix of size ($n × $n)")
+    
+    # Givens QR
+    R_givens = copy(A)
+    Q_givens, R_givens = givens_qr!(Matrix{Float64}(I, n, n), R_givens)
+    givens_fact_error = norm(Q_givens*R_givens - A)
+    givens_orth_error = norm(Q_givens'Q_givens - I)
+    
+    # Householder QR
+    R_house = copy(A)
+    Q_house = Matrix{Float64}(I, n, n)
+    householder_qr!(Q_house, R_house)
+    house_fact_error = norm(Q_house*R_house - A)
+    house_orth_error = norm(Q_house'Q_house - I)
+    
+    # Built-in QR for comparison
+    F = qr(A)
+    builtin_fact_error = norm(Matrix(F.Q)*F.R - A)
+    builtin_orth_error = norm(Matrix(F.Q)'Matrix(F.Q) - I)
+    
+    # Print results
+    println("Factorization errors:")
+    @printf "  Givens QR:      %.2e\n" givens_fact_error
+    @printf "  Householder QR: %.2e\n" house_fact_error
+    @printf "  Built-in QR:    %.2e\n" builtin_fact_error
+    
+    println("Orthogonality errors:")
+    @printf "  Givens QR:      %.2e\n" givens_orth_error
+    @printf "  Householder QR: %.2e\n" house_orth_error
+    @printf "  Built-in QR:    %.2e\n" builtin_orth_error
+end
 
-n = 100
-A = randn(n, n)
-@info "Running QR factorization for a random matrix of size ($n x $n), with Givens rotations"
-R = copy(A)
-Q, R = givens_qr!(Matrix{Float64}(I, n, n), R)
-@info "The factorization error is: $(norm(Q * R - A)), normalization error is $(norm(Q' * Q - I))"
+function run_all_examples(n=100)
+    println("\n==== SimpleLinearAlgebra Examples ====")
+    println("Matrix size: $n × $n")
+    
+    run_gram_schmidt_example(n)
+    run_lu_example(n)
+    run_qr_example(n)
+    
+    println("\n==== Examples Complete ====")
+end
 
-@info "The Householder QR factorization"
-n = 100
-A = randn(n, n)
-R2 = copy(A)
-Q2 = Matrix{Float64}(I, n, n)
-householder_qr!(Q2, R2)
-@info "The factorization error is: $(norm(Q2 * R2 - A)), normalization error is $(norm(Q2' * Q2 - I))"
+# Run all examples with default size
+run_all_examples()
+
+# Uncomment to run with a different size
+# run_all_examples(200)
 

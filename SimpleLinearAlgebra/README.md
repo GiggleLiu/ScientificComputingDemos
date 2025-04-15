@@ -1,23 +1,32 @@
 # SimpleLinearAlgebra
 
-This demo implements some simple linear algebra operations in native Julia language. The main reference is the book by Golub[^Golub2016].
+Implement fundamental linear algebra operations from scratch. This educational package demonstrates how common linear algebra algorithms work under the hood, with clear implementations that prioritize readability over performance.
+The main reference is the book "Matrix Computations" by Golub[^Golub2016].
 
-## Contents
-- Generic matrix-matrix multiplication
-- Householder transformation ([src/householder.jl](src/householder.jl))
-- LU decomposition ([src/lu_factorization.jl](src/lu_factorization.jl) and [src/lu_factorization_partialpivoting.jl](src/lu_factorization_partialpivoting.jl))
-- QR decomposition ([src/qr_factorization.jl](src/qr_factorization.jl))
-- Orthogonalization ([src/orthogonalization.jl](src/orthogonalization.jl))
-- Forward and back substitution ([src/back_substitution.jl](src/back_substitution.jl))
-- Fast Fourier Transform (FFT) ([src/fouriertransform.jl](src/fouriertransform.jl) and [src/fastfouriertransform.jl](src/fastfouriertransform.jl))
+## Features
 
-## To run
+This package implements the following linear algebra operations:
+
+- **Matrix Factorizations**
+  - LU Decomposition (with and without pivoting)
+  - QR Decomposition (using Householder reflections and Givens rotations)
+  - Gram-Schmidt Orthogonalization (classical and modified)
+
+- **Linear System Solvers**
+  - Forward and backward substitution
+  - Linear system solving via LU factorization
+
+- **Fast Algorithms**
+  - Strassen's matrix multiplication algorithm
+  - Fast Fourier Transform (FFT) and Inverse FFT
+
+## Run examples
 
 Clone the repository to your local machine and install the required packages (in a terminal):
 
 ```bash
 $ git clone https://github.com/GiggleLiu/ScientificComputingDemos.git
-$ cd ScientificCompuingDemos
+$ cd ScientificComputingDemos
 $ make init-SimpleLinearAlgebra   # initialize the environment in SimpleLinearAlgebra and SimpleLinearAlgebra/examples
 $ make test-SimpleLinearAlgebra   # run the tests in SimpleLinearAlgebra/test
 $ make example-SimpleLinearAlgebra   # run the script SimpleLinearAlgebra/examples/main.jl

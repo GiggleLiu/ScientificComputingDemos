@@ -1,4 +1,4 @@
-using WGLMakie
+using CairoMakie
 using LatticeGasCA
 
 function make_video(lg::AbstractLatticeGas; filename::String="lattice-gas.mp4", nframes::Int=120)

@@ -71,7 +71,8 @@ end
 @testset "simulate and save" begin
     model = SwendsenWangModel(10, 0.1, 0.5)
     spin = rand([-1,1], model.l, model.l)
-    result = simulate!(model, spin; nsteps_heatbath = 100, nsteps_eachbin = 100, nbins = 100)
+    result, tcorr = simulate!(model, spin; nsteps_heatbath = 100, nsteps_eachbin = 100, nbins = 100, taumax = 100)
+    @test length(tcorr) == 100
     filename = joinpath(@__DIR__, "res.dat")
     write(filename, result)
     data = readdlm(filename)
