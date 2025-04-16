@@ -60,45 +60,6 @@ end
 show_landscape(c2, detector_locs)
 
 
-res = solve(param, src, rc, c2)
-
-# Create animation of wave propagation
-function animate_wavefield(wavefield)
-    fig = Figure(size=(800, 600))
-    ax = Axis(fig[1, 1], 
-        xlabel="X (grid points)", 
-        ylabel="Y (grid points)", 
-        title="Acoustic Wave Propagation")
-    
-    # Get min/max values for consistent colormap scaling
-    vmin, vmax = extrema(wavefield)
-    
-    # Create initial heatmap
-    hm = heatmap!(ax, wavefield[:, :, 1]', colormap=:seismic, 
-                  colorrange=(vmin, vmax))
-    Colorbar(fig[1, 2], hm, label="Amplitude")
-    
-    # Add source and detector markers
-    scatter!(ax, [src[2]], [src[1]], color=:silver, markersize=15, marker=:circle)
-    detector_x = [loc[1] for loc in detector_locs]
-    detector_y = [loc[2] for loc in detector_locs]
-    scatter!(ax, detector_y, detector_x, color=:red, markersize=15, marker=:star5)
-    
-    # Create animation
-    framerate = 30
-    step = max(1, div(size(wavefield, 3), 300))  # Limit to ~300 frames for performance
-    
-    record(fig, joinpath(@__DIR__, "wave_propagation.mp4"), 1:step:size(wavefield, 3); framerate=framerate) do i
-        hm[3][] = wavefield[:, :, i]'
-        ax.title = "Acoustic Wave Propagation (t = $(i))"
-    end
-    
-    @info "Animation saved to: ", joinpath(@__DIR__, "wave_propagation.mp4")
-end
-
-# Generate the animation
-animate_wavefield(res)
-
 target_pulses = solve_detector(param, src, rc, c2, detector_locs)
 
 # Plot the target pulses

@@ -1,167 +1,178 @@
-using ADSeismic, CairoMakie
-using ADSeismic: SeismicState, treeverse_step, TreeverseLog
-using LinearAlgebra
+using TreeverseAlgorithm, CairoMakie, Enzyme, LinearAlgebra
 
-nx = ny = 50
-N = 1000
-c = 1000*ones(nx+2, ny+2)
+"""
+    lorentz(t, p, θ)
 
-# gradient
-param = AcousticPropagatorParams(nx=size(c,1)-2, ny=size(c,2)-2,
-    Rcoef=0.2, dx=20.0, dy=20.0, dt=0.05, nstep=N)
-src = size(c) .÷ 2 .- 1
-srcv = Ricker(param, 100.0, 500.0)
+Compute the Lorenz system derivatives at time `t` for state `p` with parameters `θ`.
 
-# Plot the Ricker wavelet (source time function)
-function plot_waveform(srcv)
-    fig = Figure()
-    ax = Axis(fig[1, 1], xlabel="Time (s)", ylabel="Amplitude", title="Ricker Wavelet")
-    lines!(ax, srcv, linewidth=2, color=:blue)
-    save(joinpath(@__DIR__, "ricker_wavelet.png"), fig)
-    fig
+# Arguments
+- `t`: Time (not used in autonomous system but included for ODE solver compatibility)
+- `p`: State vector [x, y, z]
+- `θ`: Parameter tuple (ρ, σ, β)
+
+# Returns
+- Vector of derivatives [dx/dt, dy/dt, dz/dt]
+"""
+function lorentz(t, p, θ)
+    ρ, σ, β = θ
+    x, y, z = p
+    return [σ*(y-x), ρ*x-y-x*z, x*y-β*z]
 end
- 
-plot_waveform(srcv)
 
-s1 = SeismicState([randn(nx+2,ny+2) for i=1:4]..., Ref(2))
-s0 = SeismicState(Float64, nx, ny)
+"""
+    rk4_step(f, t, y, θ; Δt)
 
-# setup initial gradient
-gn = SeismicState(Float64, nx, ny)
-gn.u[45,45] = 1.0
+Perform a single 4th-order Runge-Kutta integration step.
 
-log = TreeverseLog()
-res0 = solve(param, src, srcv, copy(c))
-res, (gx, gsrcv, gc) = treeverse_gradient(s0,
-            x -> (gn, zero(srcv), zero(c));  # return the last gradient
-            param=param, c=copy(c), src,
-            srcv=srcv, δ=50, logger=log);
+# Arguments
+- `f`: Function defining the ODE system
+- `t`: Current time
+- `y`: Current state vector
+- `θ`: Parameters for the ODE system
+- `Δt`: Time step size
 
-# Visualize the gradient with respect to the initial state (g_tv_x)
-function visualize_gradient(g)
-    fig = Figure(size=(800, 600))
-    ax = Axis(fig[1, 1], 
-        xlabel="X (grid points)", 
-        ylabel="Y (grid points)", 
-        title="Gradient with respect to initial state")
+# Returns
+- Updated state vector after one step
+"""
+function rk4_step(f, t, y, θ; Δt)
+    k1 = Δt/6 * f(t, y, θ)
+    k2 = Δt/3 * f(t+Δt/2, y .+ k1 ./ 2, θ)
+    k3 = Δt/3 * f(t+Δt/2, y .+ k2 ./ 2, θ)
+    k4 = Δt/6 * f(t+Δt, y .+ k3, θ)
+    return y + k1 + k2 + k3 + k4
+end
+
+"""
+    rk4(f, y0, θ; t0, Δt, Nt)
+
+Integrate an ODE system using the 4th-order Runge-Kutta method.
+
+# Arguments
+- `f`: Function defining the ODE system
+- `y0`: Initial state vector
+- `θ`: Parameters for the ODE system
+- `t0`: Initial time
+- `Δt`: Time step size
+- `Nt`: Number of time steps
+
+# Returns
+- Final state vector after integration
+"""
+function rk4(f, y0::T, θ; t0, Δt, Nt) where T
+    for i=1:Nt
+        y0 = rk4_step(f, t0+(i-1)*Δt, y0, θ; Δt=Δt)
+    end
+    return y0
+end
+
+"""
+    gradient_treeverse(x, θ; Δt, N)
+
+Compute gradients of the Lorenz system using the Treeverse algorithm.
+
+# Arguments
+- `x`: Initial state vector
+- `θ`: Parameters (ρ, σ, β)
+- `Δt`: Time step size
+- `N`: Number of steps
+
+# Returns
+- Tuple of (gradient, log)
+"""
+function gradient_treeverse(x, θ; Δt, N)
+    step_func(x) = rk4_step(lorentz, 0.0, x, θ; Δt)
     
-    # Create heatmap of the gradient
-    hm = heatmap!(ax, g, colormap=:viridis)
-    Colorbar(fig[1, 2], hm, label="Gradient magnitude")
-    
-    save(joinpath(@__DIR__, "gradient_visualization.png"), fig)
-    return fig
-end
-
-# Display the gradient visualization
-visualize_gradient(gc)
-
-# Import Optimizers.jl for Adam optimizer
-using Optimisers
-
-# Define the loss function that we want to minimize
-function loss_function(c_model)
-    # Solve the forward problem with the current velocity model
-    result = ADSeismic.solve_final(param, src, srcv, c_model)
-    return result[45, 45]
-end
-
-# Function to compute gradient using treeverse
-function compute_gradient(c_model)
-    gn = SeismicState(Float64, nx, ny)
-    gn.u[45,45] = 1.0
-    # Solve and get gradient
-    res, (_, _, gradient) = treeverse_gradient(s0,
-                x -> (gn, zero(srcv), zero(c_model));
-                param=param, c=c_model, src=src,
-                srcv=srcv, δ=50, logger=log)
-    @show res.u[45, 45]
-    return gradient
-end
-
-# Setup Adam optimizer
-learning_rate = 0.01
-beta1 = 0.9
-beta2 = 0.999
-epsilon = 1e-8
-adam = Adam(learning_rate)
-
-# Initial velocity model
-c_current = copy(c)
-
-# Number of optimization iterations
-num_iterations = 50
-
-# Store loss history for plotting
-loss_history = Float64[]
-
-# Function to perform optimization using Adam optimizer
-function optimize_model(c_initial, num_iterations, learning_rate=0.01)
-    # Setup Adam optimizer
-    opt_state = Optimisers.setup(Adam(learning_rate), c_initial)
-    c_current = copy(c_initial)
-    loss_values = Float64[]
-    
-    for iter in 1:num_iterations
-        # Compute current loss
-        current_loss = loss_function(c_current)
-        push!(loss_values, current_loss)
-        
-        println("Iteration $iter, Loss: $current_loss")
-        
-        # Compute gradient
-        gradient = compute_gradient(c_current)
-        
-        # Update velocity model using Adam optimizer
-        @show norm(gradient)
-        Optimisers.update!(opt_state, c_current, gradient)
+    function back(x, f_and_g::Nothing)
+        # Set the gradient of the last state to [1, 0, 0], i.e., differentiate with respect to x
+        y = step_func(x)
+        return back(x, (y, y, [1.0, 0.0, 0.0]))
     end
     
-    return c_current, loss_values
+    function back(x, f_and_g::Tuple)
+        function forward(x, y)
+            y .= step_func(x)
+            return nothing
+        end
+        x̅ = zero(x)
+        result, y, y̅ = f_and_g
+        Enzyme.autodiff(Enzyme.Reverse, Const(forward), Duplicated(x, x̅), Duplicated(y, y̅))
+        return (result, x, x̅)
+    end
+    
+    logger = TreeverseAlgorithm.TreeverseLog()
+    result_tv, _, g_tv = treeverse(step_func, back, x; δ=40, N, logger)
+    return g_tv, logger
 end
 
-# Run optimization
-c_current, loss_history = optimize_model(c, num_iterations)
-# Plot loss history
-function plot_loss_history(loss_history)
-    fig = Figure(size=(800, 400))
+"""
+    create_gradient_heatmap(rhos, sigmas, gradients; filename)
+
+Create and save a heatmap visualization of gradient norms.
+
+# Arguments
+- `rhos`: Range of ρ values
+- `sigmas`: Range of σ values
+- `gradients`: Matrix of gradient norms
+- `filename`: Output file path
+
+# Returns
+- Figure object
+"""
+function create_gradient_heatmap(rhos, sigmas, gradients; filename=joinpath(@__DIR__, "gradient_heatmap.png"))
+    fig = Figure(size = (800, 600))
+
     ax = Axis(fig[1, 1], 
-        xlabel="Iteration", 
-        ylabel="Loss", 
-        title="Optimization Loss History")
+              xlabel = "ρ", 
+              ylabel = "σ", 
+              title = "Gradient Norm Heatmap (Lorenz System)")
+
+    # Create the heatmap with log scale
+    hm = heatmap!(ax, rhos, sigmas, gradients', 
+                  colormap = :viridis, 
+                  colorscale = log10,
+                  colorrange = (1e-3, 1e5))
+
+    # Add a colorbar with log scale labels
+    Colorbar(fig[1, 2], hm, label = "Gradient Norm (log scale)")
+
+    # Save the figure
+    save(filename, fig)
+    println("Log-scale heatmap saved to $(filename)")
     
-    lines!(ax, 1:length(loss_history), loss_history, linewidth=2, color=:blue)
-    
-    save(joinpath(@__DIR__, "optimization_loss_history.png"), fig)
     return fig
 end
 
-# Display the loss history
-plot_loss_history(loss_history)
+# Reference: Jin-Guo L., Kai-Lai X., 2021. Automatic differentiation and its applications in physics simulation. 
+# Acta Phys. Sin. 70, 149402–11. https://doi.org/10.7498/aps.70.20210813
 
-# Visualize final optimized model
-function visualize_final_model(initial_model, optimized_model)
-    fig = Figure(size=(1200, 600))
-    
-    ax1 = Axis(fig[1, 1], 
-        xlabel="X (grid points)", 
-        ylabel="Y (grid points)", 
-        title="Initial Velocity Model")
-    
-    ax2 = Axis(fig[1, 2], 
-        xlabel="X (grid points)", 
-        ylabel="Y (grid points)", 
-        title="Optimized Velocity Model")
-    
-    hm1 = heatmap!(ax1, initial_model, colormap=:viridis)
-    hm2 = heatmap!(ax2, optimized_model, colormap=:viridis)
-    
-    Colorbar(fig[1, 3], hm2, label="Velocity (m²/s²)")
-    
-    save(joinpath(@__DIR__, "final_comparison.png"), fig)
-    return fig
+# Define parameter ranges
+rhos = 0:2:50   # Using a step of 2 to reduce computation time
+sigmas = 0:2:30 # Using a step of 2 to reduce computation time
+gradients = zeros(length(rhos), length(sigmas))
+
+@info "Starting gradient computation for Lorenz system"
+@info "Parameter ranges: ρ ∈ [$(minimum(rhos)), $(maximum(rhos))], σ ∈ [$(minimum(sigmas)), $(maximum(sigmas))]"
+@info "Total parameter combinations to evaluate: $(length(rhos) * length(sigmas))"
+
+# Compute gradients for each parameter combination
+for (i, ρ) in enumerate(rhos)
+    for (j, σ) in enumerate(sigmas)
+        x0 = [1.0, 0.0, 0.0]
+        θ = (ρ, σ, 8/3)  # Standard β value for Lorenz system
+        
+        @info "Computing gradient for parameters" ρ=ρ σ=σ β=8/3 progress="$((i-1)*length(sigmas)+j)/$(length(rhos)*length(sigmas))"
+        g_tv, logger = gradient_treeverse(x0, θ; Δt = 1e-3, N = 10000)
+        gradients[i, j] = norm(g_tv)
+        
+        @info "Gradient computation complete" ρ=ρ σ=σ gradient_norm=norm(g_tv)
+        @info logger
+    end
 end
 
-# Compare initial and final models
-visualize_final_model(c2, c_current)
+@info "Gradient computation completed for all parameter combinations"
+@info "Generating heatmap visualization"
 
+# Generate and display the heatmap
+fig = create_gradient_heatmap(rhos, sigmas, gradients)
+
+@info "Analysis complete. Heatmap generated and saved."

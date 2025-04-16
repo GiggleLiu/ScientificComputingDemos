@@ -6,6 +6,7 @@
 # - `c`: Velocity model
 # Returns the next seismic state after one time step
 function treeverse_step!(s, s2, param, src, srcv, c)
+    s2.upre .= s.u
     one_step!(param, s2.u, s.u, s.upre, s2.φ, s2.ψ, param.Σx, param.Σy, c)
     s2.u[src...] += srcv[s2.step[]]*param.DELTAT^2
     return s2
@@ -42,7 +43,7 @@ function treeverse_gradient(s0, gnf; param, src, srcv, c, δ=20, logger=Treevers
         end
         gx2, gsrcv2, gc2 = g
         unext, φ, ψ = zero(x.u), copy(x.φ), copy(x.ψ)
-        x2 = SeismicState(x.u, unext, φ, ψ, Ref(x.step[]+1))
+        x2 = SeismicState(zero(x.u), unext, φ, ψ, Ref(x.step[]+1))
         gx = SeismicState(zero(x.u), zero(x.u), zero(x.φ), zero(x.ψ), Ref(x.step[]))
         Enzyme.autodiff(Reverse, treeverse_step!, Const, Duplicated(x, gx), Duplicated(x2, gx2), Const(param), Const(src), Duplicated(srcv, gsrcv2), Duplicated(c, gc2))
         return (gx, gsrcv2, gc2)
