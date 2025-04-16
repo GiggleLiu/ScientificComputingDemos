@@ -1,7 +1,8 @@
 using TreeverseAlgorithm, CairoMakie, Enzyme, LinearAlgebra
+using ForwardDiff
 
 """
-    lorentz(t, p, θ)
+    lorenz(t, p, θ)
 
 Compute the Lorenz system derivatives at time `t` for state `p` with parameters `θ`.
 
@@ -13,7 +14,7 @@ Compute the Lorenz system derivatives at time `t` for state `p` with parameters 
 # Returns
 - Vector of derivatives [dx/dt, dy/dt, dz/dt]
 """
-function lorentz(t, p, θ)
+function lorenz(t, p, θ)
     ρ, σ, β = θ
     x, y, z = p
     return [σ*(y-x), ρ*x-y-x*z, x*y-β*z]
@@ -80,7 +81,7 @@ Compute gradients of the Lorenz system using the Treeverse algorithm.
 - Tuple of (gradient, log)
 """
 function gradient_treeverse(x, θ; Δt, N)
-    step_func(x) = rk4_step(lorentz, 0.0, x, θ; Δt)
+    step_func(x) = rk4_step(lorenz, 0.0, x, θ; Δt)
     
     function back(x, f_and_g::Nothing)
         # Set the gradient of the last state to [1, 0, 0], i.e., differentiate with respect to x
@@ -100,7 +101,7 @@ function gradient_treeverse(x, θ; Δt, N)
     end
     
     logger = TreeverseAlgorithm.TreeverseLog()
-    result_tv, _, g_tv = treeverse(step_func, back, x; δ=40, N, logger)
+    result_tv, _, g_tv = treeverse(step_func, back, x; δ=100, N, logger)
     return g_tv, logger
 end
 
@@ -122,25 +123,75 @@ function create_gradient_heatmap(rhos, sigmas, gradients; filename=joinpath(@__D
     fig = Figure(size = (800, 600))
 
     ax = Axis(fig[1, 1], 
-              xlabel = "ρ", 
-              ylabel = "σ", 
+              xlabel = "σ", 
+              ylabel = "ρ", 
               title = "Gradient Norm Heatmap (Lorenz System)")
 
     # Create the heatmap with log scale
-    hm = heatmap!(ax, rhos, sigmas, gradients', 
+    hm = heatmap!(ax, sigmas, rhos, gradients, 
                   colormap = :viridis, 
                   colorscale = log10,
                   colorrange = (1e-3, 1e5))
+                
+    # plot the curve: rho = sigma * (sigma + beta + 3)/(sigma - beta - 1)
+    sigmas_range = range(5, 30, length=100)
+    lines!(ax, sigmas_range, sigmas_range .* (sigmas_range .+ 8/3 .+ 3)./(sigmas_range .- 8/3 .- 1), color=:red)
 
     # Add a colorbar with log scale labels
-    Colorbar(fig[1, 2], hm, label = "Gradient Norm (log scale)")
+    Colorbar(fig[1, 2], hm, label = "Gradient Norm")
 
     # Save the figure
     save(filename, fig)
-    println("Log-scale heatmap saved to $(filename)")
+    @info "Heatmap saved to $(filename)"
     
     return fig
 end
+
+"""
+    gradient_finite_difference(x0, θ; Δt=1e-3, N=1000, ε=1e-6)
+
+Compute the gradient of the Lorenz system using finite difference method.
+
+# Arguments
+- `x0`: Initial state vector
+- `θ`: Parameters (ρ, σ, β)
+- `Δt`: Time step
+- `N`: Number of time steps
+- `ε`: Perturbation size for finite difference
+
+# Returns
+- Gradient vector computed using finite difference
+"""
+function gradient_finite_difference(x0, θ; Δt=1e-3, N=1000, ε=1e-6)
+    ρ, σ, β = θ
+    
+    # Function to compute the final state after N steps using rk4
+    function compute_final_state(initial_position)
+        return rk4(lorenz, initial_position, θ; t0=0.0, Δt=Δt, Nt=N)
+    end
+    
+    # Compute baseline
+    baseline = compute_final_state(x0)
+    
+    # Compute gradients using finite difference
+    g_x = (compute_final_state([x0[1] + ε, x0[2], x0[3]]) - baseline) / ε
+    g_y = (compute_final_state([x0[1], x0[2] + ε, x0[3]]) - baseline) / ε
+    g_z = (compute_final_state([x0[1], x0[2], x0[3] + ε]) - baseline) / ε
+    
+    return [g_x, g_y, g_z]
+end
+
+# Compute gradient using Treeverse
+x0 = [1.0, 0.0, 0.0]
+θ = (10.0, 28.0, 8/3)
+g_tv, _ = gradient_treeverse(x0, θ; Δt=1e-3, N=10000)
+    
+# Compute gradient using finite difference
+g_fd = gradient_finite_difference(x0, θ; Δt=1e-3, N=10000)
+# Compute relative error
+g_fd_x = getindex.(g_tv, 1)
+@info "The differece between the two gradients (finite difference and treeverse) is $(norm(g_fd_x .- g_tv))"
+
 
 # Reference: Jin-Guo L., Kai-Lai X., 2021. Automatic differentiation and its applications in physics simulation. 
 # Acta Phys. Sin. 70, 149402–11. https://doi.org/10.7498/aps.70.20210813
@@ -148,15 +199,15 @@ end
 # Define parameter ranges
 rhos = 0:2:50   # Using a step of 2 to reduce computation time
 sigmas = 0:2:30 # Using a step of 2 to reduce computation time
-gradients = zeros(length(rhos), length(sigmas))
+gradients = zeros(length(sigmas), length(rhos))
 
 @info "Starting gradient computation for Lorenz system"
 @info "Parameter ranges: ρ ∈ [$(minimum(rhos)), $(maximum(rhos))], σ ∈ [$(minimum(sigmas)), $(maximum(sigmas))]"
 @info "Total parameter combinations to evaluate: $(length(rhos) * length(sigmas))"
 
 # Compute gradients for each parameter combination
-for (i, ρ) in enumerate(rhos)
-    for (j, σ) in enumerate(sigmas)
+for (i, σ) in enumerate(sigmas)
+    for (j, ρ) in enumerate(rhos)
         x0 = [1.0, 0.0, 0.0]
         θ = (ρ, σ, 8/3)  # Standard β value for Lorenz system
         
