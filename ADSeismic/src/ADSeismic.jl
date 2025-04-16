@@ -1,12 +1,11 @@
 module ADSeismic
 
 using Enzyme
+using TreeverseAlgorithm
+using LinearAlgebra
 
-export solve_detector, treeverse_grad_detector,
-    treeverse_solve_detector
-export Glued, RK4, ODESolve, ODEStep,
-    ODELog, checkpointed_neuralode
 export AcousticPropagatorParams, solve
+export treeverse, treeverse_gradient
 
 include("simulation.jl")
 include("utils.jl")

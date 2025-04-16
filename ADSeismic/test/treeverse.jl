@@ -104,14 +104,13 @@ end
     src = size(c) .÷ 2 .- 1
     srcv = Ricker(param, 100.0, 500.0)
 
-   s1 = ADSeismic.SeismicState([randn(nx+2,ny+2) for i=1:4]..., Ref(2))
-    s4 = ADSeismic.treeverse_step(s1, param, src, srcv, c)
+    s1 = ADSeismic.SeismicState([randn(nx+2,ny+2) for i=1:4]..., Ref(2))
     s0 = ADSeismic.SeismicState(Float64, nx, ny)
     gn = ADSeismic.SeismicState(Float64, nx, ny)
     gn.u[45,45] = 1.0
     log = ADSeismic.TreeverseLog()
     res0 = solve(param, src, srcv, copy(c))
-    res, (g_tv_x, g_tv_srcv, g_tv_c) = treeverse_solve(s0, x->(gn, zero(srcv), zero(c));
+    res, (g_tv_x, g_tv_srcv, g_tv_c) = treeverse_gradient(s0, x->(gn, zero(srcv), zero(c));
                 param=param, c=copy(c), src,
                 srcv=srcv, δ=50, logger=log)
     @test res.u ≈ res0[:,:,end]

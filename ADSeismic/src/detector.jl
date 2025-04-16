@@ -1,30 +1,3 @@
-struct Glued{T}
-    data::T
-end
-Glued(args...) = Glued(args)
-
-Base.zero(c::Glued) = Glued(zero.(c.data))
-Base.copy(c::Glued) = Glued(copy.(c.data))
-@generated function Base.zero(::Type{Glued{T}}) where T
-    :(Glued($([zero(t) for t in T.types]...)))
-end
-
-@inline function Base.:(+)(a::Glued{T}, b::Glued{T}) where T
-    Glued{T}(a.data .+ b.data)
-end
-
-@inline function Base.:(/)(a::Glued{T}, b::Real) where T
-    Glued{T}(a.data ./ b)
-end
-
-@inline function Base.:(*)(a::Real, b::Glued{T}) where T
-    Glued{T}(a .* b.data)
-end
-
-function zero_similar(arr::AbstractArray{T}, size...) where T
-    zeros(T, size...)
-end
-
 function solve_detector(param::AcousticPropagatorParams, src, 
             srcv::AbstractArray{Float64, 1}, c::AbstractArray{Float64, 2}, detector_locs::AbstractVector)
     slices = zero_similar(c, length(detector_locs), param.NSTEP-1)
@@ -43,47 +16,63 @@ function solve_detector(param::AcousticPropagatorParams, src,
     slices
 end
 
-struct GradientCache{TS,TP,TV,TP2}
-    x::TS
-    y::TS
-    c::TP
-    srcv::TV
-    target_pulses::TP2
+function zero_similar(arr::AbstractArray{T}, size...) where T
+    res = similar(arr, size...)
+    fill!(res, zero(T))
+    return res
 end
 
-"""
-    treeverse_solve(s0; param, src, srcv, c, δ=20, logger=TreeverseLog())
+function treeverse_grad_detector(lx, x, lg, g, param, src, srcv, gsrcv, c, gc, target_pulses, detector_locs, gcache)
+    @info "gradient: $(x.step[]+1) -> $(x.step[])"
+    ly, y = treeverse_step_detector(x_, param, src, srcv, c, target_pulses, detector_locs).data
 
-* `s0` is the initial state,
-"""
-function treeverse_solve_detector(s0; param, src, srcv, c, target_pulses, detector_locs, δ=20, logger=TreeverseLog())
-    f = x->treeverse_step_detector(x, param, src, srcv, c, target_pulses, detector_locs)
-    res = []
-    gcache = GradientCache(GVar(s0.data[2]), GVar(s0.data[2]), GVar(c), GVar(srcv), GVar(target_pulses))
-    function gf(x, g)
-        if g === nothing
-            y = f(x)
-            push!(res, y)
-            g = (Glued(one(x.data[1]),zero(x.data[2])), zero(srcv), zero(c))
-        end
-        gy, gsrcv, gc = g
-        treeverse_grad_detector(x, gy, param, src, srcv, gsrcv, c, gc, target_pulses, detector_locs, gcache)
+    # fit data into cache
+    gcache.c .= GVar.(c, gc)
+    gcache.srcv .= GVar.(srcv, gsrcv)
+    for field in fieldnames(SeismicState)[1:end-1]
+        getfield(gcache.y, field) .= GVar.(getfield(y, field), getfield(g, field))
+        getfield(gcache.x, field) .= GVar.(getfield(x, field))
     end
-    g = treeverse(f, gf,
-        copy(s0); δ=δ, N=param.NSTEP-1, f_inplace=false, logger=logger)
-    res[], g
-end
+    gcache.x.step[] = x.step[]
+    gcache.y.step[] = y.step[]
 
-function treeverse_grad_detector(x_, g_, param, src, srcv, gsrcv, c, gc, target_pulses, detector_locs, gcache)
-    # TODO: implement this with Enzyme.jl
+    # compute
+    _, gs, _, _, gv, gc2 = (~bennett_step_detector!)(Glued(GVar(ly, lg), gcache.y), Glued(GVar(lx), gcache.x), param, src, gcache.srcv, gcache.c, gcache.target_pulses, detector_locs)
+
+    # get gradients from the cache
+    gc .= grad(gc2)
+    gsrcv .= grad.(gv)
+    for field in fieldnames(SeismicState)[1:end-1]
+        getfield(g, field) .= grad.(getfield(gs.data[2], field))
+    end
+
+    return (Glued(grad(gs.data[1]), g), gsrcv, gc)
 end
 
 function treeverse_step_detector(s_, param, src, srcv, c, target_pulses, detector_locs)
     l, s = s_.data
     unext, φ, ψ = zero(s.u), copy(s.φ), copy(s.ψ)
-    ADSeismic.one_step!(param, unext, s.u, s.upre, φ, ψ, param.Σx, param.Σy, c)
+    ReversibleSeismic.one_step!(param, unext, s.u, s.upre, φ, ψ, param.Σx, param.Σy, c)
     s2 = SeismicState(copy(s.u), unext, φ, ψ, Ref(s.step[]+1))
     s2.u[SafeIndex(src)] += srcv[s2.step[]]*param.DELTAT^2
     l += sum(abs2.(target_pulses[:,s2.step[]] .- s2.u[detector_locs]))
-    return Glued(l, s2)
+    return (l, s2)
+end
+
+function treeverse_solve_detector(ls, s0; param, src, srcv, c, target_pulses, detector_locs, δ=20, logger=TreeverseLog())
+    f = x->treeverse_step_detector(x, param, src, srcv, c, target_pulses, detector_locs)
+    res = []
+    gcache = (copy(s0), copy(s0), copy(c), copy(srcv), GVar(target_pulses))
+    function gf(x, g)
+        if g === nothing
+            y = f(x)
+            push!(res, y)
+            g = ((one(x[1]),zero(x[2])), zero(srcv), zero(c))
+        end
+        gy, gsrcv, gc = g
+        treeverse_grad_detector(lx, x, ly, gy, param, src, srcv, gsrcv, c, gc, target_pulses, detector_locs, gcache)
+    end
+    g = treeverse(f, gf,
+        copy(s0); δ=δ, N=param.NSTEP-1, f_inplace=false, logger=logger)
+    res[], g
 end
