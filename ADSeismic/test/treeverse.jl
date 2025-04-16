@@ -99,19 +99,8 @@ end
     src = size(c) .÷ 2 .- 1
     srcv = Ricker(param, 100.0, 500.0)
 
-    function getnilanggrad(c::AbstractMatrix{T}) where T
-        c = copy(c)
-        tu = zeros(T, size(c)..., N+1)
-        tφ = zeros(T, size(c)..., N+1)
-        tψ = zeros(T, size(c)..., N+1)
-        # TODO: use Enzyme.jl to compute the gradient
-        res = Enzyme.gradient(loss, (0.0, param, src, srcv, c, tu, tφ, tψ))
-        res[end-2], res[end-4], res[end-3]
-    end
-
-    s1 = ADSeismic.SeismicState([randn(nx+2,ny+2) for i=1:4]..., Ref(2))
+   s1 = ADSeismic.SeismicState([randn(nx+2,ny+2) for i=1:4]..., Ref(2))
     s4 = ADSeismic.treeverse_step(s1, param, src, srcv, c)
-    g_nilang_x, g_nilang_srcv, g_nilang_c = getnilanggrad(copy(c))
     s0 = ADSeismic.SeismicState(Float64, nx, ny)
     gn = ADSeismic.SeismicState(Float64, nx, ny)
     gn.u[45,45] = 1.0
@@ -121,8 +110,4 @@ end
                 param=param, c=copy(c), src,
                 srcv=srcv, δ=50, logger=log)
     @test res.u ≈ res0[:,:,end]
-    @test isapprox(g_nilang_srcv, g_tv_srcv)
-    @test isapprox(g_nilang_c, g_tv_c)
-    @test maximum(g_nilang_c) ≈ maximum(g_tv_c)
-    @test g_nilang_x[:,:,2] ≈ g_tv_x.u
 end

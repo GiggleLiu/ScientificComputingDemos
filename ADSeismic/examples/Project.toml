@@ -1,0 +1,3 @@
+[deps]
+ADSeismic = "91750005-49c4-47b3-98eb-6aafcffa9e28"
+CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"

@@ -115,6 +115,13 @@ end
     pop!(state, i)
 end
 
+# Inputs:
+# - `s`: The current seismic state containing wavefield values
+# - `param`: Acoustic propagator parameters
+# - `src`: Source location coordinates
+# - `srcv`: Source time function values
+# - `c`: Velocity model
+# Returns the next seismic state after one time step
 function treeverse_step(s, param, src, srcv, c)
     unext, φ, ψ = zero(s.u), copy(s.φ), copy(s.ψ)
     one_step!(param, unext, s.u, s.upre, φ, ψ, param.Σx, param.Σy, c)
@@ -123,8 +130,21 @@ function treeverse_step(s, param, src, srcv, c)
     return s2
 end
 
-function treeverse_grad(x, g, param, src, srcv, gsrcv, c, gc)
+# Inputs:
+# - `x`: The current seismic state
+# - `g`: The gradient of the loss with respect to the next state
+# - `param`: Acoustic propagator parameters
+# - `src`: Source location coordinates
+# - `srcv`: Source time function values
+# - `gsrcv`: Gradient with respect to source time function
+# - `c`: Velocity model
+# - `gc`: Gradient with respect to velocity model
+# Returns the gradients with respect to the current state, source time function, and velocity model
+function treeverse_grad!(x, g, param, src, srcv, gsrcv, c, gc)
     # TODO: implement this with Enzyme.jl
+    # one_step!(param, unext, s.u, s.upre, φ, ψ, param.Σx, param.Σy, c)
+    Enzyme.autodiff(Reverse, treeverse_step, Const, Duplicated(x, g), Const(param), Const(src), Duplicated(srcv, gsrcv), Duplicated(c, gc))
+    return (g, gsrcv, gc)
 end
 
 """
@@ -141,7 +161,8 @@ function treeverse_solve(s0, gnf; param, src, srcv, c, δ=20, logger=TreeverseLo
             push!(res, y)
             g = gnf(y)
         end
-        treeverse_grad(x, g[1], param, src, srcv, g[2], c, g[3])
+        treeverse_grad!(x, g[1], param, src, srcv, g[2], c, g[3])
+        return g
     end
     g = treeverse(f, gf,
         copy(s0); δ=δ, N=param.NSTEP-1, f_inplace=false, logger=logger)

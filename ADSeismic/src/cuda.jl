@@ -17,10 +17,6 @@ function togpu(x::SeismicState)
 end
 
 togpu(x::Number) = x
-function togpu(x::Glued)
-    Glued(togpu.(x.data))
-end
-
 togpu(x::AbstractArray) = CuArray(x)
 
 @inline function cudiv(x::Int, y::Int)
@@ -76,15 +72,6 @@ function one_step!(param::AcousticPropagatorParams, u, w, wold, φ, ψ, σ, τ, 
 end
 
 
-@inline function delete_state!(state::Dict{Int,<:Glued{<:Tuple{<:Real, <:CuSeismicState}}}, i::Int)
-    s = pop!(state, i)
-    CUDA.unsafe_free!(s.data[2].upre)
-    CUDA.unsafe_free!(s.data[2].u)
-    CUDA.unsafe_free!(s.data[2].φ)
-    CUDA.unsafe_free!(s.data[2].ψ)
-    return s
-end
-
 @inline function delete_state!(state::Dict{Int,<:CuSeismicState}, i::Int)
     s = pop!(state, i)
     CUDA.unsafe_free!(s.upre)
@@ -100,8 +87,4 @@ end
 
 function Base.setindex!(x::CuArray, val, si::SafeIndex)
     x[[si.arg]] = val
-end
-
-function ADSeismic.zero_similar(arr::CuArray{T}, size...) where T
-    CUDA.fill(zero(T), size...)
 end
