@@ -1,8 +1,12 @@
 # HiddenMarkovModel
 
-Solving the Hidden Markov Model using the tensor network method.
+Solving the Hidden Markov Model[^Rabiner1986] using the tensor network method.
 
 ## Contents
+
+- Hidden Markov Model
+- Viterbi algorithm
+- Baum-Welch algorithm
 
 ## To run
 
@@ -17,3 +21,4 @@ $ make example-HiddenMarkovModel   # run the script HiddenMarkovModel/examples/m
 
 
 ## References
+[^Rabiner1986]: Rabiner, Lawrence, and Biinghwang Juang. "An introduction to hidden Markov models." ieee assp magazine 3.1 (1986): 4-16.

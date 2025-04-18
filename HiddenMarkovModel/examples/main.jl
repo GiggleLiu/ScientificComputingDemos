@@ -31,9 +31,9 @@ end
 Print the sequence of observations with their corresponding labels.
 """
 function print_observations(observations, observation_labels)
-    println("\nObserved conditions:")
+    @info "Observed conditions:"
     for (i, obs) in enumerate(observations)
-        println("Day $i: $(observation_labels[obs])")
+        @info "Day $i: $(observation_labels[obs])"
     end
 end
 
@@ -43,20 +43,20 @@ end
 Compare true states with predicted states and calculate accuracy.
 """
 function compare_predictions(true_states, predicted_states, state_labels, days, title="Comparison of true weather vs. predicted weather:")
-    println("\n$title")
-    println("Day\tTrue Weather\tPredicted Weather\tMatch?")
-    println("---\t------------\t-----------------\t------")
+    @info "$title"
+    @info "Day\tTrue Weather\tPredicted Weather\tMatch?"
+    @info "---\t------------\t-----------------\t------"
     correct_predictions = 0
     for i in 1:days
         match = true_states[i] == predicted_states[i]
         if match
             correct_predictions += 1
         end
-        println("$i\t$(state_labels[true_states[i]])\t\t$(state_labels[predicted_states[i]])\t\t$(match ? "✓" : "✗")")
+        @info "$i\t$(state_labels[true_states[i]])\t\t$(state_labels[predicted_states[i]])\t\t$(match ? "✓" : "✗")"
     end
 
     accuracy = round(correct_predictions / days * 100, digits=1)
-    println("\nPrediction accuracy: $accuracy%")
+    @info "Prediction accuracy: $accuracy%"
     return accuracy
 end
 
@@ -66,13 +66,13 @@ end
 Learn HMM parameters from observations using the Baum-Welch algorithm.
 """
 function learn_hmm_from_observations(observations, n_states, n_observations, max_iter=20)
-    println("\nLearning HMM parameters from observations only...")
+    @info "Learning HMM parameters from observations only..."
     learned_hmm = baum_welch(observations, n_states, n_observations, max_iter=max_iter)
     
-    println("\nLearned transition matrix:")
+    @info "Learned transition matrix:"
     display(round.(learned_hmm.A, digits=2))
     
-    println("\nLearned emission matrix:")
+    @info "Learned emission matrix:"
     display(round.(learned_hmm.B, digits=2))
     
     return learned_hmm
@@ -84,7 +84,7 @@ end
 Create and display a plot comparing true states, predicted states, and observations.
 """
 function plot_results(days, true_states, predicted_states, observations, state_labels)
-    println("\nGenerating plots...")
+    @info "Generating plots..."
     
     fig = Figure(size = (800, 600))
     ax = Axis(fig[1, 1], 
@@ -117,15 +117,15 @@ end
 Run the complete weather prediction example using Hidden Markov Models.
 """
 function run_weather_example()
-    println("Weather Prediction Example using Hidden Markov Models")
-    println("====================================================")
+    @info "Weather Prediction Example using Hidden Markov Models"
+    @info "===================================================="
 
     # Create the weather HMM
     weather_hmm = create_weather_hmm()
 
     # Generate a sequence of 30 days of weather and observations
     days = 30
-    println("\nGenerating a sequence of $days days of weather...")
+    @info "Generating a sequence of $days days of weather..."
     observations, true_states = generate_sequence(weather_hmm, days)
 
     # Map numeric states and observations to labels for better readability
@@ -136,7 +136,7 @@ function run_weather_example()
     print_observations(observations, observation_labels)
 
     # Use the Viterbi algorithm to find the most likely sequence of weather states
-    println("\nPredicting the most likely weather states using Viterbi algorithm...")
+    @info "Predicting the most likely weather states using Viterbi algorithm..."
     predicted_states = viterbi(weather_hmm, observations)
 
     # Compare true states with predicted states
@@ -154,8 +154,9 @@ function run_weather_example()
 
     # Plot the results
     fig = plot_results(days, true_states, predicted_states, observations, state_labels)
-    display(fig)
-    println("\nExample completed!")
+    filename = joinpath(@__DIR__, "weather_prediction_example.png")
+    save(filename, fig)
+    @info "Example completed! The plot is saved as $filename"
     return weather_hmm, learned_hmm, accuracy, learned_accuracy
 end
 
