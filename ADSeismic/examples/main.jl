@@ -80,7 +80,7 @@ Compute gradients of the Lorenz system using the Treeverse algorithm.
 # Returns
 - Tuple of (gradient, log)
 """
-function gradient_treeverse(x, θ; Δt, N)
+function gradient_treeverse(x, θ; Δt, δ=100, N)
     step_func(x) = rk4_step(lorenz, 0.0, x, θ; Δt)
     
     function back(x, f_and_g::Nothing)
@@ -101,7 +101,7 @@ function gradient_treeverse(x, θ; Δt, N)
     end
     
     logger = TreeverseAlgorithm.TreeverseLog()
-    result_tv, _, g_tv = treeverse(step_func, back, x; δ=100, N, logger)
+    result_tv, _, g_tv = treeverse(step_func, back, x; δ, N, logger)
     return g_tv, logger
 end
 
