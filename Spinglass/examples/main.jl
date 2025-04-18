@@ -1,7 +1,7 @@
 #####################################################
 # Example 1: Reduction to Circuit Satisfiability
 #####################################################
-@info "#### Reduction to Circuit Satisfiability ####"
+@info "#### Example 1: Reduction to Circuit Satisfiability ####"
 using Spinglass, Graphs, ProblemReductions, GenericTensorNetworks
 
 # Demonstrate logic gates as spin glass models
@@ -38,7 +38,7 @@ extracted = ProblemReductions.extract_solution(mapres, solution[1])
 #####################################################
 # Example 2: Simulated Annealing Method (approximate)
 #####################################################
-@info "#### Simulated Annealing for Spinglass solving ####"
+@info "#### Example 2: Simulated Annealing for Spinglass solving ####"
 # Load a spin glass problem from file
 filename = pkgdir(Spinglass, "data", "example.txt")
 sap = load_spinglass(filename)

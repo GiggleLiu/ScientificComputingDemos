@@ -75,16 +75,8 @@ function energy(bds::NewtonSystem{T}) where T
     eng
 end
 
-function barycenter(m, mTot, coo::Point3D) # Find Barycenter
-    #    m : mass of planet
-    # mTot : total mass of system
-    #  coo : coordinates of planet
-    #
-    return (m * coo) / mTot
-end
-
 function momentum(body::Body)
-    return m * cross(body.r, body.v)
+    return body.m * cross(body.r, body.v)
 end
 
 @inline function acceleration(ra, rb, mb)

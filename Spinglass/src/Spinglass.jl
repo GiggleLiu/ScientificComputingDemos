@@ -8,5 +8,6 @@ export SpinConfig, SpinglassModel
 
 include("simulated_annealing.jl")
 include("mis_sa.jl")
+include("dynamics.jl")
 
 end

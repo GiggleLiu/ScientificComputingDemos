@@ -8,5 +8,6 @@ function rosenbrock(x)
 end
 
 include("simplex.jl")
+include("Cracker/Cracker.jl")
 
 end

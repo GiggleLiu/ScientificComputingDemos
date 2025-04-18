@@ -1,0 +1,4 @@
+[deps]
+CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
+Graphs = "86223c79-3864-5bf0-83f7-82e725a168b6"
+SpinDynamics = "14ef36e5-90ab-499e-a97f-72c4e36abdb5"

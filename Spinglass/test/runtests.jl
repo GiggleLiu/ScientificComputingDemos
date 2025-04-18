@@ -8,3 +8,7 @@ end
 @testset "logic_gates" begin
     include("logic_gates.jl")
 end
+
+@testset "dynamics" begin
+    include("dynamics.jl")
+end

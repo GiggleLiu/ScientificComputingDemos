@@ -1,0 +1,24 @@
+name = "ADSeismic"
+uuid = "91750005-49c4-47b3-98eb-6aafcffa9e28"
+authors = ["GiggleLiu <cacate0129@gmail.com> and contributors"]
+version = "1.0.0-DEV"
+
+[deps]
+CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba"
+Enzyme = "7da242da-08ed-463a-9acd-ee780be4f1d9"
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+TreeverseAlgorithm = "e1c63c57-2fea-45bf-a8bf-df3ea6afb545"
+
+[compat]
+CUDA = "5.7.2"
+Enzyme = "0.13.30"
+LinearAlgebra = "1.11.0"
+julia = "1"
+
+[extras]
+ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
+Pkg = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test", "Pkg", "ForwardDiff"]
