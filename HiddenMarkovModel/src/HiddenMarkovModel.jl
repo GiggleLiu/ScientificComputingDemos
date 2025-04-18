@@ -4,8 +4,8 @@ using OMEinsum
 using LinearAlgebra
 using StatsBase
 
-export HMM, forward, backward, viterbi, baum_welch, generate_sequence
-export HMMNetwork
+export HMM, viterbi, baum_welch, generate_sequence
+export HMMNetwork, likelihood, likelihood_and_gradient
 
 include("hmm.jl")
 

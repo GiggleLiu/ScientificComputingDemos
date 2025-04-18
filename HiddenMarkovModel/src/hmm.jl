@@ -37,8 +37,8 @@ struct HMMNetwork{T, CT}
     tensors::Vector{Array{T}}
 end
 p0index(net::HMMNetwork) = 1
-aindex(net::HMMNetwork, i::Int) = 1+i
-bindex(net::HMMNetwork, i::Int) = net.n+i
+arange(net::HMMNetwork) = 2:net.n
+brange(net::HMMNetwork) = net.n+1:2*net.n
 function HMMNetwork(hmm::HMM, observations::Vector{Int}; optimizer=GreedyMethod())
     n = length(observations)
     code = EinCode([[1], [[i-1, i] for i in 2:n]..., [[i] for i in 1:n]...], Int[])
@@ -46,60 +46,10 @@ function HMMNetwork(hmm::HMM, observations::Vector{Int}; optimizer=GreedyMethod(
     optcode = optimize_code(code, OMEinsum.get_size_dict(code.ixs, (tensors...,)), optimizer)
     return HMMNetwork(n, optcode, observations, tensors)
 end
+likelihood(tnet::HMMNetwork) = tnet.code(tnet.tensors...)[]
 function likelihood_and_gradient(tnet::HMMNetwork)
-    return cost_and_gradient(tnet.optcode, (tnet.tensors...,))
-end
-
-"""
-    forward(hmm::HMM, observations::Vector{Int})
-
-Compute the forward probabilities for a sequence of observations.
-Returns the forward probability matrix and the likelihood of the observations.
-"""
-function forward(hmm::HMM, observations::Vector{Int})
-    n_states = length(hmm.p0)
-    T = length(observations)
-    
-    # Initialize forward matrix
-    α = zeros(n_states, T)
-    
-    # Initialize first column with initial state * emission probability
-    α[:, 1] = ein"i,i->i"(hmm.p0, hmm.B[:, observations[1]])
-    
-    # Forward algorithm using einsum for matrix operations
-    for t in 2:T
-        # α_t(j) = B_j(x_t) * ∑_i α_{t-1}(i) * A_ij
-        α[:, t] = ein"j,(ij,i)->j"(hmm.B[:, observations[t]], hmm.A, α[:, t-1])
-    end
-    
-    # Likelihood is the sum of the final column
-    likelihood = sum(α[:, T])
-    
-    return α, likelihood
-end
-
-"""
-    backward(hmm::HMM, observations::Vector{Int})
-
-Compute the backward probabilities for a sequence of observations.
-"""
-function backward(hmm::HMM, observations::Vector{Int})
-    n_states = length(hmm.p0)
-    T = length(observations)
-    
-    # Initialize backward matrix
-    β = zeros(n_states, T)
-    
-    # Initialize last column with 1s
-    β[:, T] .= 1.0
-    
-    # Backward algorithm using einsum
-    for t in (T-1):-1:1
-        # β_t(i) = ∑_j A_ij * B_j(x_{t+1}) * β_{t+1}(j)
-        β[:, t] = ein"ij,(j,j)->i"(hmm.A, hmm.B[:, observations[t+1]], β[:, t+1])
-    end
-    
-    return β
+    likelihood, gradients = cost_and_gradient(tnet.code, (tnet.tensors...,))
+    return likelihood[], gradients
 end
 
 """
@@ -143,8 +93,8 @@ end
 function state_likelihood(tnet::HMMNetwork, path::Vector{Int})
     prod(vcat(
         [tnet.tensors[p0index(tnet)][path[1]]],
-        [tnet.tensors[aindex(tnet, i)][path[i], path[i+1]] for i in 1:length(path)-1],
-        [tnet.tensors[bindex(tnet, i)][path[i]] for i in 1:length(path)]
+        [tnet.tensors[ia][path[i], path[i+1]] for (i,ia) in enumerate(arange(tnet))],
+        [tnet.tensors[ib][path[i]] for (i,ib) in enumerate(brange(tnet))]
     ))
 end
 
@@ -166,63 +116,38 @@ function baum_welch(observations::Vector{Int}, n_states::Int, n_observations::In
     
     hmm = HMM(A, B, p0)
     
-    T = length(observations)
     prev_likelihood = -Inf
-    
-    for iter in 1:max_iter
+    net = HMMNetwork(hmm, observations)
+    for _ in 1:max_iter
         # E-step: Compute forward and backward probabilities
-        α, likelihood = forward(hmm, observations)
-        β = backward(hmm, observations)
-        
+        likelihood, gradients = likelihood_and_gradient(net)
+        ξ = [gradients[ia] ./ likelihood .* net.tensors[ia] for ia in arange(net)]  # transition probabilities
+        γ = [gradients[ib] ./ likelihood .* net.tensors[ib] for ib in brange(net)]  # emission probabilities
+
         # Check convergence
-        if abs(likelihood - prev_likelihood) < tol
-            break
-        end
+        abs(likelihood - prev_likelihood) < tol && break
         prev_likelihood = likelihood
         
-        # Compute state probabilities and transition probabilities
-        γ = α .* β ./ likelihood  # State probabilities
-        
-        # Compute ξ (transition probabilities)
-        ξ = zeros(n_states, n_states, T-1)
-        for t in 1:(T-1)
-            # ξ_t(i,j) = P(z_t=i, z_{t+1}=j | x, θ)
-            # = α_t(i) * A_ij * B_j(x_{t+1}) * β_{t+1}(j) / P(x|θ)
-            for i in 1:n_states
-                for j in 1:n_states
-                    ξ[i, j, t] = α[i, t] * hmm.A[i, j] * hmm.B[j, observations[t+1]] * β[j, t+1] / likelihood
-                end
-            end
-        end
-
-        @show ξ[:,:,1]
-        @show gradient(hmm, observations)[2][2]/likelihood .* (hmm.A)
-        @show γ[:, 1]
-        @show gradient(hmm, observations)[2][1]/likelihood .* (hmm.p0)
-        @show γ[:, 2]
-        @show gradient(hmm, observations)[2][T+1]/likelihood .* (hmm.B[:, observations[1]])
-        
-        # M-step: Update parameters
+        # # M-step: Update parameters
         # Update initial state distribution
-        new_p0 = γ[:, 1]
+        new_p0 = γ[1]
         
         # Update transition matrix
-        new_A = dropdims(sum(ξ, dims=3), dims=3) ./ sum(γ[:, 1:end-1], dims=2)
-        
+        A = sum(ξ) ./ sum(γ[1:end-1])
+
         # Update emission matrix
-        new_B = zeros(n_states, n_observations)
-        for j in 1:n_states
-            for k in 1:n_observations
-                # Sum γ for all time steps where observation is k
-                new_B[j, k] = sum(γ[j, observations .== k]) / sum(γ[j, :])
-            end
+        B = zeros(n_states, n_observations)
+        for i in eachindex(γ)
+            B[:, observations[i]] .+= γ[i]
         end
-        
-        # Create new HMM with updated parameters
-        hmm = HMM(new_A, new_B, new_p0)
+        B ./= sum(γ)
+        # Create new HMM network with updated parameters
+        net.tensors[arange(net)] .= Ref(A)
+        net.tensors[brange(net)] .= [B[:, o] for o in observations]
+        net.tensors[p0index(net)] = new_p0
     end
     
-    return hmm
+    return HMM(A, B, p0)
 end
 
 """
@@ -253,33 +178,3 @@ function generate_sequence(hmm::HMM, length::Int)
     
     return observations, states
 end
-
-function gradient_descent!(hmm::HMM, observations::Vector{Int}, max_iter::Int=100, 
-                         learning_rate::Float64=0.01)
-    n = length(observations)
-    # Initialize parameters
-
-    # construct the log likelihood function
-    code_likelyhood = EinCode([[1], [[i-1, i] for i in 2:n]..., [[i] for i in 1:n]...], Int[])
-    tensors = vcat([hmm.p0], [hmm.A for _ in 1:n-1], [hmm.B[:, o] for o in observations])
-    optcode = optimize_code(code_likelyhood, OMEinsum.get_size_dict(code_likelyhood.ixs, (tensors...,)), GreedyMethod())
-
-    # compute the log likelihood
-    #log_likelihood = code_likelyhood(tensors...)
-    for _ in 1:max_iter
-        p, gradients = cost_and_gradient(optcode, (tensors...,))
-        @info "likelihood: $p"
-        gp0, gA, gB = gradients[1] ./ p, sum(gradients[2:end-n]) ./ p, sum(gradients[end-n+1:end]) ./ p
-        @info "gradients: $gp0, $gA, $gB"
-        # update the parameters
-        hmm.A .+= learning_rate .* gA
-        hmm.B .+= learning_rate .* gB
-        hmm.p0 .+= learning_rate .* gp0
-        hmm.A ./= sum(hmm.A; dims=2)
-        hmm.B ./= sum(hmm.B; dims=2)
-        hmm.p0 ./= sum(hmm.p0)
-    end
-
-    return hmm
-end
-
