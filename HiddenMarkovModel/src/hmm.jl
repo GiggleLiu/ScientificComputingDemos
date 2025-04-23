@@ -118,19 +118,19 @@ function baum_welch(observations::Vector{Int}, n_states::Int, n_observations::In
     
     prev_likelihood = -Inf
     net = HMMNetwork(hmm, observations)
-    for _ in 1:max_iter
+    for k in 1:max_iter
         # E-step: Compute forward and backward probabilities
         likelihood, gradients = likelihood_and_gradient(net)
         ξ = [gradients[ia] ./ likelihood .* net.tensors[ia] for ia in arange(net)]  # transition probabilities
         γ = [gradients[ib] ./ likelihood .* net.tensors[ib] for ib in brange(net)]  # emission probabilities
 
         # Check convergence
-        abs(likelihood - prev_likelihood) < tol && break
         prev_likelihood = likelihood
+        @info "Likelihood: $likelihood"
         
         # # M-step: Update parameters
         # Update initial state distribution
-        new_p0 = γ[1]
+        p0 = γ[1]
         
         # Update transition matrix
         A = sum(ξ) ./ sum(γ[1:end-1])
@@ -144,7 +144,7 @@ function baum_welch(observations::Vector{Int}, n_states::Int, n_observations::In
         # Create new HMM network with updated parameters
         net.tensors[arange(net)] .= Ref(A)
         net.tensors[brange(net)] .= [B[:, o] for o in observations]
-        net.tensors[p0index(net)] = new_p0
+        net.tensors[p0index(net)] = p0
     end
     
     return HMM(A, B, p0)
