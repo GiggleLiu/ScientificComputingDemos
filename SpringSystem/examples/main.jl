@@ -45,7 +45,7 @@ function visualize_simulation(simulated, exact)
     coos2 = Observable(locs2[1])
     endpoints = Observable(vecs[1])
     scatter!(ax1, coos1, markersize = 10, color = :blue, label="simulation")
-    arrows!(ax1, coos1, endpoints; color = :red)
+    arrows2d!(ax1, coos1, endpoints; color = :red)
     scatter!(ax1, coos2, markersize = 10, color = :cyan, label="exact")
     axislegend(ax1)
 

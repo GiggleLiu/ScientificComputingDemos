@@ -11,14 +11,14 @@ Please make sure you have Julia installed on your local machine. If not, please 
    ```
 2. Initialize the environment first by running the following command in the terminal:
    ```bash
-   $ make init-PhysicsSimulation
+   $ case=SpringSystem make init
    ```
 3. Run the demos by running the following command in the terminal:
    ```bash
-   $ make test-PhysicsSimulation
-   $ make example-PhysicsSimulation
+   $ case=SpringSystem make test
+   $ case=SpringSystem make example
    ```
-   `make-test-%` is used to run the tests in the `PhysicsSimulation` directory. `make-example-%` is used to run the examples in the `PhysicsSimulation` directory. The `PhysicsSimulation` is the name of the directory where the demos are located. You can replace it with the name of the directory where the demos are located.
+   `make test` is used to run the tests in the `SpringSystem` directory. `make example` is used to run the examples in the `SpringSystem` directory. The `SpringSystem` is the name of the directory where the demos are located. You can replace it with the name of the directory where the demos are located.
 
 ## Contents
 ### Basic

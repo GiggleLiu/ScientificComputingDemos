@@ -52,7 +52,7 @@ jobs:
             ${{ runner.os }}-test-
             ${{ runner.os }}-
       - name: "develop lib packages"
-        run: make init-${{ matrix.package }}
+        run: make init case=${{ matrix.package }}
       - uses: julia-actions/julia-buildpkg@v1
       - name: "run tests"
-        run: make test-${{ matrix.package }}
+        run: make test case=${{ matrix.package }}
