@@ -26,6 +26,12 @@ $ make init-Spinglass   # initialize the environment in Spinglass and Spinglass/
 $ make example-Spinglass   # run the script Spinglass/examples/main.jl
 ```
 
+## To run the CUDA example
+
+```bash
+$ julia --project=Spinglass/examples Spinglass/examples/cuda.jl
+```
+
 ## References
 [^SSSS]: Deep Learning and Quantum Programming: A Spring School, https://github.com/QuantumBFS/SSSS
 [^Cain2023]: Cain, M., et al. "Quantum speedup for combinatorial optimization with flat energy landscapes (2023)." arXiv preprint arXiv:2306.13123.

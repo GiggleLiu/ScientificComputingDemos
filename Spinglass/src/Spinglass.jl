@@ -4,7 +4,7 @@ using Random
 using DelimitedFiles, Graphs, ProblemReductions
 
 export load_spinglass, random_config, anneal
-export SpinConfig, SpinglassModel
+export SpinConfig, SpinglassModel, SpinGlassSA
 
 include("simulated_annealing.jl")
 include("mis_sa.jl")
