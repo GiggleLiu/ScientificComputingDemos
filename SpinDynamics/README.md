@@ -24,8 +24,8 @@ Clone the repository to your local machine and install the required packages (in
 ```bash
 $ git clone https://github.com/GiggleLiu/ScientificComputingDemos.git
 $ cd ScientificComputingDemos
-$ make init-SpinDynamics   # initialize the environment in SpinDynamics and SpinDynamics/examples
-$ make example-SpinDynamics   # run the script SpinDynamics/examples/main.jl
+$ dir=SpinDynamics make init   # initialize the environment in SpinDynamics and SpinDynamics/examples
+$ dir=SpinDynamics make example   # run the script SpinDynamics/examples/main.jl
 ```
 
 ## References

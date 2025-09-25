@@ -15,8 +15,8 @@ Clone the repository to your local machine and install the required packages (in
 ```bash
 $ git clone https://github.com/GiggleLiu/ScientificComputingDemos.git
 $ cd ScientificComputingDemos
-$ make init-HiddenMarkovModel   # initialize the environment in HiddenMarkovModel and HiddenMarkovModel/examples
-$ make example-HiddenMarkovModel   # run the script HiddenMarkovModel/examples/main.jl
+$ dir=HiddenMarkovModel make init   # initialize the environment in HiddenMarkovModel and HiddenMarkovModel/examples
+$ dir=HiddenMarkovModel make example   # run the script HiddenMarkovModel/examples/main.jl
 ```
 
 

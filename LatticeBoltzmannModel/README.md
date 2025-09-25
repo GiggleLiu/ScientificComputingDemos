@@ -13,6 +13,6 @@ This package implements Lattice Boltzmann Model (LBM) for fluid dynamics simulat
 Please clone this repository to your local machine and switch to the `ScientificComputingDemos` directory and run the following command in the terminal:
 
 ```bash
-$ make init-LatticeBoltzmannModel  # Initialize the environment
-$ make example-LatticeBoltzmannModel  # Run the examples
+$ dir=LatticeBoltzmannModel make init  # Initialize the environment
+$ dir=LatticeBoltzmannModel make example  # Run the examples
 ```

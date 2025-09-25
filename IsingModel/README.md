@@ -13,8 +13,8 @@ Clone the repository to your local machine and install the required packages (in
 ```bash
 $ git clone https://github.com/GiggleLiu/ScientificComputingDemos.git
 $ cd ScientificComputingDemos
-$ make init-IsingModel   # initialize the environment in IsingModel and IsingModel/examples
-$ make example-IsingModel   # run the script IsingModel/examples/main.jl
+$ dir=IsingModel make init   # initialize the environment in IsingModel and IsingModel/examples
+$ dir=IsingModel make example   # run the script IsingModel/examples/main.jl
 ```
 
 

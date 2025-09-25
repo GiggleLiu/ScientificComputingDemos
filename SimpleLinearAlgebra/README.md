@@ -27,9 +27,9 @@ Clone the repository to your local machine and install the required packages (in
 ```bash
 $ git clone https://github.com/GiggleLiu/ScientificComputingDemos.git
 $ cd ScientificComputingDemos
-$ make init-SimpleLinearAlgebra   # initialize the environment in SimpleLinearAlgebra and SimpleLinearAlgebra/examples
-$ make test-SimpleLinearAlgebra   # run the tests in SimpleLinearAlgebra/test
-$ make example-SimpleLinearAlgebra   # run the script SimpleLinearAlgebra/examples/main.jl
+$ dir=SimpleLinearAlgebra make init   # initialize the environment in SimpleLinearAlgebra and SimpleLinearAlgebra/examples
+$ dir=SimpleLinearAlgebra make test   # run the tests in SimpleLinearAlgebra/test
+$ dir=SimpleLinearAlgebra make example   # run the script SimpleLinearAlgebra/examples/main.jl
 ```
 
 ## References

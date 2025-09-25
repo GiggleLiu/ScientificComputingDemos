@@ -9,8 +9,8 @@ Clone the repository to your local machine and install the required packages (in
 ```bash
 $ git clone https://github.com/GiggleLiu/ScientificComputingDemos.git
 $ cd ScientificComputingDemos
-$ make init-SimpleKrylov   # initialize the environment in SimpleKrylov
-$ make test-SimpleKrylov   # run the tests
+$ dir=SimpleKrylov make init   # initialize the environment in SimpleKrylov
+$ dir=SimpleKrylov make test   # run the tests
 ```
 
 ## References
