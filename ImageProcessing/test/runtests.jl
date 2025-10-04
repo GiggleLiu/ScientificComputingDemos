@@ -1,14 +1,13 @@
-using ImageProcessing
-using Test
+using Test, ImageProcessing, ImageProcessing.Images
 
-@testset "fft" begin
-    include("fft.jl")
+@testset "Utils" begin
+    include("utils.jl")
 end
 
-@testset "pca" begin
+@testset "SVD Compression" begin
     include("pca.jl")
 end
 
-@testset "polymul" begin
-    include("polymul.jl")
+@testset "FFT Compression" begin
+    include("fft.jl")
 end
