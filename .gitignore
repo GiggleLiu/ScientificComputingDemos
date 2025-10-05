@@ -38,5 +38,6 @@ SimpleKrylov/examples/*.png
 Spinglass/examples/*.png
 SpinDynamics/examples/*.png
 ADSeismic/examples/*.png
+ImageProcessing/examples/*.png
 HiddenMarkovModel/examples/*.png
 *.gif

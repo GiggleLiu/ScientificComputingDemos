@@ -126,7 +126,7 @@ function create_comparison_plot(img)
     # FFT compressed
     original_size = size(img)
     img_k = fft_compress(img, original_size...)
-    nx, ny = original_size[1] ÷ 4, original_size[2] ÷ 4
+    nx, ny = original_size[1] ÷ 6, original_size[2] ÷ 6
     fft_compressed = lower_rank(img_k, nx, ny)
     fft_img = toimage(RGBA{N0f8}, fft_compressed)
     fft_ratio = compression_ratio(fft_compressed)
@@ -146,9 +146,10 @@ function create_comparison_plot(img)
         yscale=log10)
     lines!(ax4, 1:min(100, length(red_svd.S)), red_svd.S[1:min(100, length(red_svd.S))], 
            color=:red, linewidth=2)
-    
-    save("compression_comparison.png", fig)
-    @info "Comparison plot saved as: compression_comparison.png"
+
+    filename = joinpath(@__DIR__, "compression_comparison.png")
+    save(filename, fig)
+    @info "Comparison plot saved as: $filename"
 end
 
 # Run the demo
