@@ -1,3 +1,46 @@
+"""
+    arnoldi_iteration(A::AbstractMatrix, x0::AbstractVector; maxiter) -> (Matrix, Matrix)
+
+Arnoldi iteration for constructing an orthonormal basis of the Krylov subspace.
+
+The Arnoldi iteration builds an orthonormal basis for the Krylov subspace
+K_m(A, x₀) = span{x₀, Ax₀, A²x₀, ..., A^(m-1)x₀} and produces an upper Hessenberg
+matrix H that represents the projection of A onto this subspace.
+
+# Arguments
+- `A::AbstractMatrix`: Square matrix (can be non-symmetric)
+- `x0::AbstractVector`: Initial vector
+- `maxiter`: Maximum number of iterations (size of Krylov subspace)
+
+# Returns
+- `H::Matrix`: Upper Hessenberg matrix of size (m+1)×m or m×m
+- `Q::Matrix`: Orthonormal basis vectors as columns (Q'*Q = I)
+
+# Algorithm
+The algorithm maintains the relation: A*Q = Q*H (if no breakdown occurs)
+Uses Gram-Schmidt orthogonalization to maintain orthonormality of basis vectors.
+
+# Properties
+- For symmetric matrices, H becomes tridiagonal (equivalent to Lanczos)
+- Eigenvalues of H (Ritz values) approximate eigenvalues of A
+- Particularly effective for approximating extremal eigenvalues
+
+# Example
+```julia
+A = rand(100, 100)
+x0 = randn(100)
+H, Q = arnoldi_iteration(A, x0; maxiter=30)
+
+# Ritz values approximate eigenvalues of A
+ritz_values = eigen(H).values
+
+# Can use to solve linear systems: A*x ≈ b
+# Minimize ‖b - A*x‖ in Krylov subspace
+```
+
+# See Also
+- `lanczos_reorthogonalize`: Specialized version for symmetric matrices
+"""
 function arnoldi_iteration(A::AbstractMatrix{T}, x0::AbstractVector{T}; maxiter) where T
     # Storage for Hessenberg matrix entries (column by column)
     h = Vector{T}[]
