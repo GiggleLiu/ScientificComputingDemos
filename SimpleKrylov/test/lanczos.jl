@@ -1,4 +1,4 @@
-using LinearAlgebra, SimpleKrylov, SimpleKrylov.SimpleSparseArrays
+using LinearAlgebra, SimpleKrylov, SparseArrays, Test
 
 @testset "lanczos" begin
     # Create a random 3-regular graph with 1000 vertices
@@ -7,8 +7,8 @@ using LinearAlgebra, SimpleKrylov, SimpleKrylov.SimpleSparseArrays
     js = rand(1:n, 3n)
     vals = randn(3n)
     # create a symmetric matrix
-    coo_matrix = SimpleSparseArrays.COOMatrix(n, n, vcat(is, js), vcat(js, is), vcat(vals, vals))
-    A = SimpleSparseArrays.CSCMatrix(coo_matrix)
+    A = sparse(is, js, vals)
+    A += A'
 
     # Generate a random initial vector
     q1 = randn(n)
