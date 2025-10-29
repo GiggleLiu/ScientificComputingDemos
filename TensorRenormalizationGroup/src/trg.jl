@@ -1,4 +1,9 @@
-@doc raw"
+struct TRGResult
+    lnZ::Float64
+    history::Vector{NamedTuple{(:iteration, :bond_dim, :tensor), Tuple{Int, Int, AbstractArray}}}
+end
+
+"""
     trg(a, χ, niter)
 
 return the partition-function of a two-dimensional system of size `2^niter`
@@ -9,10 +14,15 @@ algorithm.
         |1
     4--[a]--2
        3|
-"
+"""
 function trg(a::AbstractArray{T,4}, χ, niter; tol::Float64 = 1e-16) where T
     lnZ = zero(T)
+    history = []
+    
     for n in 1:niter
+        # Record current state
+        Zygote.@ignore push!(history, (iteration=n, bond_dim=size(a, 1), tensor=copy(a)))
+        
         maxval = maximum(abs.(a))
         a /= maxval
         lnZ += 2.0^(1-n)*log(maxval)
@@ -24,9 +34,13 @@ function trg(a::AbstractArray{T,4}, χ, niter; tol::Float64 = 1e-16) where T
 
         a = ein"npu,por,dom,lmn -> urdl"(dr,ld,ul,ru)
     end
+    
+    # Record final state
+    Zygote.@ignore push!(history, (iteration=niter+1, bond_dim=size(a, 1), tensor=copy(a)))
+    
     trace = ein"ijij -> "(a)[]
     lnZ += log(trace)/2.0^niter
-    return lnZ
+    return TRGResult(lnZ, history)
 end
 
 

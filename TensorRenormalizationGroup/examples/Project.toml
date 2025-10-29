@@ -1,2 +1,5 @@
 [deps]
+CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 TensorRenormalizationGroup = "038389bf-03c2-461b-b4ee-e08046f5bcae"
+Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"

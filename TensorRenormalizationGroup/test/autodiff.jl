@@ -1,10 +1,10 @@
 using Test
 using Zygote, OMEinsum
-using TensorRenormalizationGroup: trg, trg_svd
+using TensorRenormalizationGroup: trg, num_grad, model_tensor, Ising
 
 @testset "real" begin
     χ, niter = 5, 5
-    foo = β -> trg(model_tensor(Ising(),β), χ, niter)
+    foo = β -> trg(model_tensor(Ising(),β), χ, niter).lnZ
     # the pytorch result with tensorgrad
     # https://github.com/wangleiphy/tensorgrad
     # clone this repo and type
@@ -15,8 +15,8 @@ end
 
 @testset "complex" begin
     β, χ, niter = 0.4, 12, 3
-    @test trg(model_tensor(Ising(),β), χ, niter) ≈
-        real(trg(model_tensor(Ising(),β) .+ 0im, χ, niter))
-    @test Zygote.gradient(β -> trg(model_tensor(Ising(),β), χ, niter), 0.4)[1] ≈
-        real(Zygote.gradient(β -> real(trg(model_tensor(Ising(),β) .+ 0im, χ, niter)), 0.4)[1])
+    @test trg(model_tensor(Ising(),β), χ, niter).lnZ ≈
+        real(trg(model_tensor(Ising(),β) .+ 0im, χ, niter).lnZ)
+    @test Zygote.gradient(β -> trg(model_tensor(Ising(),β), χ, niter).lnZ, 0.4)[1] ≈
+        real(Zygote.gradient(β -> real(trg(model_tensor(Ising(),β) .+ 0im, χ, niter).lnZ), 0.4)[1])
 end

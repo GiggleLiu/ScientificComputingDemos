@@ -9,6 +9,6 @@ include("autodiff.jl")
 include("models.jl")
 include("utils.jl")
 
-export trg, Ising, model_tensor, num_grad
+export trg, trg_with_trace, Ising, model_tensor, num_grad
 
 end

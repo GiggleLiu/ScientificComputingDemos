@@ -10,7 +10,7 @@ end
 
 @testset "real" begin
     χ, niter = 5, 5
-    foo = β -> trg(model_tensor(Ising(),β), χ, niter)
+    foo = β -> trg(model_tensor(Ising(),β), χ, niter).lnZ
     # the pytorch result with tensorgrad
     # https://github.com/wangleiphy/tensorgrad
     # clone this repo and type

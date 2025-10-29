@@ -40,3 +40,4 @@ SpinDynamics/examples/*.png
 ADSeismic/examples/*.png
 HiddenMarkovModel/examples/*.png
 *.gif
+*.swp

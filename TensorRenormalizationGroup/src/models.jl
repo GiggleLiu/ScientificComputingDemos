@@ -1,11 +1,11 @@
-@doc raw"""
+"""
     Ising()
 
 A struct representing the 2D Ising model for tensor renormalization group calculations.
 """
 struct Ising end
 
-@doc raw"""
+"""
     model_tensor(::Ising, β)
 
 Construct the local tensor for the 2D Ising model at inverse temperature β.
@@ -14,7 +14,7 @@ four neighboring spins on a square lattice.
 
 The Boltzmann weight for the Ising model is:
 ```math
-W = \exp(\beta \sum_{\langle i,j \rangle} \sigma_i \sigma_j)
+W = \\exp(\\beta \\sum_{\\langle i,j \\rangle} \\sigma_i \\sigma_j)
 ```
 
 where σᵢ ∈ {-1, +1} are spin variables.
@@ -41,14 +41,17 @@ lnZ = trg(a, χ, niter)
 ```
 """
 function model_tensor(::Ising, β::Real)
-    # The bond tensor Q[σᵢ, σⱼ] = exp(β σᵢ σⱼ)
-    # where σ ∈ {-1, +1} mapped to indices {1, 2}
-    Q = [exp(β) exp(-β);
-         exp(-β) exp(β)]
+    # Identity tensor for the plaquette
+    a = reshape(Float64[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1], 2, 2, 2, 2)
     
-    # Construct the rank-4 tensor by contracting four bond tensors
-    # The indices form a plaquette: up-right-down-left
-    # This creates the local tensor for the 2D square lattice
-    return ein"ij,jk,kl,li -> ijkl"(Q, Q, Q, Q)
+    # Bond tensor elements (avoid hvcat for Zygote compatibility)
+    cβ, sβ = sqrt(cosh(β)), sqrt(sinh(β))
+    factor = 1/sqrt(2)
+    
+    # Build q matrix using reshape instead of literals
+    q = reshape([cβ+sβ, cβ-sβ, cβ-sβ, cβ+sβ], 2, 2) * factor
+    
+    # Contract to form the rank-4 Ising tensor
+    return ein"abcd,ai,bj,ck,dl -> ijkl"(a, q, q, q, q)
 end
 
