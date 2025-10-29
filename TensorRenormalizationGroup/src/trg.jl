@@ -32,7 +32,7 @@ function trg(a::AbstractArray{T,4}, χ, niter; tol::Float64 = 1e-16) where T
         dr, ul = trg_svd(dr_ul, χ, tol)
         ld, ru = trg_svd(ld_ru, χ, tol)
 
-        a = ein"npu,por,dom,lmn -> urdl"(dr,ld,ul,ru)
+        a = ein"(npu,por),(dom,lmn)-> urdl"(dr,ld,ul,ru)
     end
     
     # Record final state
