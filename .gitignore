@@ -41,3 +41,5 @@ ADSeismic/examples/*.png
 ImageProcessing/examples/*.png
 HiddenMarkovModel/examples/*.png
 *.gif
+*.swp
+TensorRenormalizationGroup/examples/*.png
