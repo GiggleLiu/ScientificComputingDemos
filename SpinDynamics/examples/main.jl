@@ -75,12 +75,12 @@ function visualize_spins_animation(locs::Vector, history::Vector; filename::Stri
     current_spins = Observable(history[1].spins)
     
     # Create the arrows plot with observables
-    arrows!(ax, 
+    arrows3d!(ax, 
             [loc[1] for loc in locs], [loc[2] for loc in locs], [loc[3] for loc in locs],
             @lift([spin[1]/10 for spin in $(current_spins)]), 
             @lift([spin[2]/10 for spin in $(current_spins)]), 
             @lift([spin[3]/10 for spin in $(current_spins)]),
-            arrowsize=0.1, linewidth=0.05, color=:blue)
+            lengthscale=5.0, tipradius=0.1, shaftradius=0.05, color=:blue)
     
     # Create animation
     framerate = 30
